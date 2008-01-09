@@ -5,7 +5,7 @@ use Test::More 'no_plan';
 use XPAN::Analyzer;
 use Path::Class;
 
-my $zer = XPAN::Analyzer->new;
+my $anz = XPAN::Analyzer->new;
 
 my $dist = dir('t/dist');
 my $no_meta = $dist->file('NoMeta-0.02.tar.gz');
@@ -13,13 +13,13 @@ my $meta_over = $dist->file('MetaOverride-1.00.tar.gz');
 my $has_deps  = $dist->file('HasDeps-0.12.tar.gz');
 
 is_deeply(
-  $zer->analyze("$no_meta"),
+  $anz->analyze("$no_meta"),
   { name => 'NoMeta', version => '0.02' },
   "analyzed without META.yml",
 );
 
 is_deeply(
-  $zer->analyze("$meta_over"),
+  $anz->analyze("$meta_over"),
   {
     name => 'Meta-Override',
     version => '1.00',
@@ -30,7 +30,7 @@ is_deeply(
 
 is_deeply(
   [ sort { $a->{module_name} cmp $b->{module_name} } @{
-    $zer->analyze("$has_deps")->{dependencies} || []
+    $anz->analyze("$has_deps")->{dependencies} || []
   } ],
   [
     {
@@ -45,4 +45,30 @@ is_deeply(
     },
   ],
   "analyzed with dependencies",
+);
+
+is_deeply(
+  { $anz->scan_for_modules("$no_meta") },
+  {},
+  "no packages in NoMeta",
+);
+
+is_deeply(
+  { $anz->scan_for_modules($dist->file('Scan-Test-0.10.tar.gz') . "") },
+  {
+    modules => [
+      {
+        name => 'Scan::Test',
+        version => '0.10',
+        file => 'Scan-Test-0.10/lib/Scan/Test.pm',
+      },
+      {
+        name => 'Scan::Test::Inner',
+        # this gets the outer package's version; that seems like a bug, but...
+        version => '0.10',
+        file => 'Scan-Test-0.10/lib/Scan/Test.pm',
+      },
+    ],
+  },
+  "modules in Scan-Test",
 );
