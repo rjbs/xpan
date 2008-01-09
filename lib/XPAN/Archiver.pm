@@ -38,6 +38,20 @@ sub db {
 sub dist   { 'XPAN::Dist' }
 sub module { 'XPAN::Module' }
 
+sub injector {
+  my ($self, $name) = @_;
+  $name = "XPAN::Injector::$name" if $name =~ s/^-//;
+  return $name->new({
+    archiver => $self,
+  });
+}
+
+sub inject {
+  my $self = shift;
+  my @args = @_;
+  while (@args) {
+    my ($injector_class, $args) = splice @args, 0, 2;
+
 
 
 1;
