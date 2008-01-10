@@ -15,7 +15,7 @@ sub init_archiver { Carp::croak "'archiver' is required" }
 
 sub new {
   my $self = shift->SUPER::new(@_);
-  Scalar::Util::weaken($self->{archiver});
+  Scalar::Util::weaken($self->{archiver}) if exists $self->{archiver};
   return $self;
 }
 
