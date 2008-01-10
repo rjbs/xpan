@@ -25,9 +25,9 @@ sub scrape {
   # do anything with author ID, now that we have it?
 
   my $dir = File::Temp::tempdir(CLEANUP => 1);
-  $mech->get($link->url_abs);
+  $self->mech->get($link->url_abs);
   my $filename = "$dir/" . File::Basename::basename($link->url);
-  $mech->save_content($filename);
+  $self->mech->save_content($filename);
   return $filename;
 }
 
