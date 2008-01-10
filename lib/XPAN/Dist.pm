@@ -3,12 +3,12 @@ use warnings;
 
 package XPAN::Dist;
 
-use base qw(Rose::DB::Object);
+use base qw(XPAN::DB::Object);
 
 sub __create {
   return <<END;
 CREATE TABLE dists (
-  id INTEGER NOT NULL AUTOINCREMENT PRIMARY KEY,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name VARCHAR(100) NOT NULL,
   version VARCHAR(20),
   abstract TEXT,
@@ -45,5 +45,6 @@ __PACKAGE__->meta->setup(
     },
   ],
 );
+__PACKAGE__->make_manager_class;
 
 1;

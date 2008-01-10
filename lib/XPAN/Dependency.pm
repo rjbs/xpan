@@ -3,12 +3,12 @@ use warnings;
 
 package XPAN::Dependency;
 
-use base qw(Rose::DB::Object);
+use base qw(XPAN::DB::Object);
 
 sub __create {
   return <<END;
 CREATE TABLE dependencies (
-  id INTEGER NOT NULL AUTOINCREMENT PRIMARY KEY,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   dist_id INTEGER NOT NULL,
   module_name VARCHAR(100) NOT NULL,
   module_version VARCHAR(20) NOT NULL,
@@ -39,5 +39,6 @@ __PACKAGE__->meta->setup(
     },
   ],
 );
+__PACKAGE__->make_manager_class;
 
 1;

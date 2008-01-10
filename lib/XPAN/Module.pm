@@ -3,12 +3,12 @@ use warnings;
 
 package XPAN::Module;
 
-use base qw(Rose::DB::Object);
+use base qw(XPAN::DB::Object);
 
 sub __create {
   return <<END;
 CREATE TABLE modules (
-  id INTEGER NOT NULL AUTOINCREMENT PRIMARY KEY,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name VARCHAR(100) NOT NULL,
   version VARCHAR(20),
   file VARCHAR(110) NOT NULL,
@@ -24,10 +24,10 @@ __PACKAGE__->meta->setup(
   columns => [
     id       => { type => 'integer', not_null => 1 },
     name     => { type => 'varchar', length   => 100, not_null => 1 },
+    version  => { type => 'varchar', length => 20 },
     file     => { type => 'varchar', length   => 110, not_null => 1 },
     dist_id  => { type => 'integer', not_null => 1 },
     abstract => { type => 'text' },
-    version  => { type => 'varchar', length => 20 },
   ],
 
   primary_key_columns => ['id'],
@@ -40,5 +40,6 @@ __PACKAGE__->meta->setup(
     },
   ],
 );
+__PACKAGE__->make_manager_class;
 
 1;
