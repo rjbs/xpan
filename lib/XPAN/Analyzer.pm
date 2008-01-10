@@ -5,9 +5,8 @@ package XPAN::Analyzer;
 
 use base qw(Rose::Object);
 use CPAN::DistnameInfo;
-use File::Temp ();
-use File::Path ();
-use Cwd ();
+use File::pushd ();
+use Path::Class ();
 use ExtUtils::Manifest ();
 require ExtUtils::MM;
 
@@ -22,8 +21,8 @@ sub parse_meta {
   }
   for my $module (keys %{ $meta->{requires} || {} }) {
     push @{ $dist{dependencies} ||= [] }, {
-      module_name => $module,
-      module_version => $meta->{requires}{$module},
+      name => $module,
+      version => $meta->{requires}{$module},
       source => 'META.yml',
     };
   }
@@ -37,6 +36,7 @@ sub parse_packages_from_pm {
 
   # stealing from PAUSE indexer.
   local $/ = "\n";
+  local $_;
   my $inpod = 0;
       PLINE: while (<$fh>) {
             chomp;
@@ -92,28 +92,32 @@ sub scan_for_modules {
     $t->read($tar);
     $tar = $t;
   }
-  my $dir = File::Temp::tempdir("XPAN.analyze.XXXXXXXX", TMPDIR => 1);
-
-  my $old_dir = Cwd::cwd;
-  chdir($dir);
-  $tar->extract;
-
-  my @pmfiles = grep { /\.pm$/i } keys %{ ExtUtils::Manifest::manifind() };
 
   my %pkg;
-  foreach my $pmfile (@pmfiles) {
-    my $hash = $self->parse_packages_from_pm($pmfile);
-    next if not defined $hash;
-    foreach (keys %$hash) {
-      $pkg{$_} = $hash->{$_}
-        if not defined $pkg{$_}{version}
-        or (defined $hash->{$_}{version}
-        and $pkg{$_}{version} < $hash->{$_}{version});
+  {
+    my $dir = File::pushd::tempd;
+
+    $tar->extract;
+
+    my ($MANIFEST) = grep { m{\bMANIFEST(?!\.SKIP)\b} }
+      keys %{ ExtUtils::Manifest::manifind() };
+    {
+      my $dist_dir = File::pushd::pushd(Path::Class::file($MANIFEST)->dir);
+      my @pmfiles = grep { /\.pm$/i } keys %{ ExtUtils::Manifest::manifind() };
+      for my $pm_dir (qw(lib)) { 
+        foreach my $pmfile (grep { m{^\Q$pm_dir\E/} } @pmfiles) {
+          my $hash = $self->parse_packages_from_pm($pmfile);
+          next if not defined $hash;
+          foreach (keys %$hash) {
+            $pkg{$_} = $hash->{$_}
+              if not defined $pkg{$_}{version}
+              or (defined $hash->{$_}{version}
+              and $pkg{$_}{version} < $hash->{$_}{version});
+          }
+        }
+      }
     }
   }
-
-  chdir($old_dir);
-  File::Path::rmtree([ $dir ]);
 
   return unless %pkg;
 
