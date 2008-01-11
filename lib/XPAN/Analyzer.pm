@@ -85,6 +85,11 @@ sub parse_packages_from_pm {
   return \%pkg;
 }
 
+sub _ignore_pmfile {
+  my ($self, $pmfile) = @_;
+  return 1 if $pmfile =~ m{^(inc|t)/};
+}
+
 sub scan_for_modules {
   my ($self, $tar) = @_;
   if (not ref $tar) {
@@ -104,16 +109,16 @@ sub scan_for_modules {
     {
       my $dist_dir = File::pushd::pushd(Path::Class::file($MANIFEST)->dir);
       my @pmfiles = grep { /\.pm$/i } keys %{ ExtUtils::Manifest::manifind() };
-      for my $pm_dir (qw(lib)) { 
-        foreach my $pmfile (grep { m{^\Q$pm_dir\E/} } @pmfiles) {
-          my $hash = $self->parse_packages_from_pm($pmfile);
-          next if not defined $hash;
-          foreach (keys %$hash) {
-            $pkg{$_} = $hash->{$_}
-              if not defined $pkg{$_}{version}
-              or (defined $hash->{$_}{version}
-              and $pkg{$_}{version} < $hash->{$_}{version});
-          }
+
+      foreach my $pmfile (grep { ! $self->_ignore_pmfile($_) } @pmfiles) {
+        
+        my $hash = $self->parse_packages_from_pm($pmfile);
+        next if not defined $hash;
+        foreach (keys %$hash) {
+          $pkg{$_} = $hash->{$_}
+            if not defined $pkg{$_}{version}
+            or (defined $hash->{$_}{version}
+            and $pkg{$_}{version} < $hash->{$_}{version});
         }
       }
     }
@@ -125,7 +130,10 @@ sub scan_for_modules {
     modules => [
       map { {
         name    => $_,
-        version => $pkg{$_}{version},
+        version => (
+          $pkg{$_}{version} eq 'undef'
+            ? undef : $pkg{$_}{version}
+        ),
         file    => $pkg{$_}{file},
       } } keys %pkg
     ],
@@ -158,6 +166,7 @@ sub analyze {
 
   %dist = (%dist, $self->scan_for_modules($tar));
 
+  #use Data::Dumper; warn Dumper(\%dist);
   return \%dist;
 }
 
