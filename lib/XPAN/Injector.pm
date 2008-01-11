@@ -29,9 +29,14 @@ sub inject {
   warn "inject: $self @_\n";
   for my $arg (@_) {
     warn "$self => $arg\n";
-    $self->archiver->dist_from_file(
-      $self->arg_to_filename($arg)
-    )->save;
+    eval { 
+      $self->archiver->dist_from_file(
+        $self->arg_to_filename($arg)
+      )->save;
+    };
+    if ($@) {
+      warn "error processing '$arg': $@";
+    }
   }
 }
 
