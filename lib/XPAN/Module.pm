@@ -14,7 +14,7 @@ CREATE TABLE modules (
   file VARCHAR(110) NOT NULL,
   abstract TEXT,
   dist_id INTEGER NOT NULL,
-  UNIQUE(name, version)
+  UNIQUE(dist_id, name)
 );
 END
 }
