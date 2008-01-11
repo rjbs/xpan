@@ -10,7 +10,7 @@ my $a = XPAN::Analyzer->new;
 my $d;
 
 is_deeply(
-  $d = $a->analyze($i->scrape('Package-Generator-0.02')),
+  $d = $a->analyze($i->arg_to_filename('Package-Generator-0.02')),
   {
     name    => 'Package-Generator',
     version => '0.02',
@@ -34,11 +34,11 @@ is_deeply(
       },
     ],
   },
-  "scrape by distname and version",
+  "arg_to_filename by distname and version",
 );
 
 is_deeply(
-  $d = $a->analyze($i->scrape('Package-Generator')),
+  $d = $a->analyze($i->arg_to_filename('Package-Generator')),
   {
     name    => 'Package-Generator',
     version => '0.100',
@@ -67,5 +67,5 @@ is_deeply(
       },
     ],
   },
-  "scrape by distname without version",
+  "arg_to_filename by distname without version",
 );
