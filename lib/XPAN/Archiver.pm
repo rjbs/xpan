@@ -16,6 +16,7 @@ sub path {
   my $self = shift;
   if (@_) {
     $self->{path} = Path::Class::dir(shift);
+    $self->{path}->mkpath;
   }
   return $self->{path} || Carp::croak("'path' is required");
 }
@@ -85,6 +86,7 @@ sub dist_from_file {
   $dir->mkpath;
 
   my $dist_file = Path::Class::file($filename)->basename;
+  require XPAN::Dist;
   my $dist = $self->dist->new(
     %{ $self->analyzer->analyze($filename) },
     file => $dist_file,
