@@ -29,18 +29,18 @@ is_deeply(
 );
 
 is_deeply(
-  [ sort { $a->{module_name} cmp $b->{module_name} } @{
+  [ sort { $a->{name} cmp $b->{name} } @{
     $anz->analyze("$has_deps")->{dependencies} || []
   } ],
   [
     {
-      module_name => 'Meta::Override',
-      module_version => '1.01',
+      name => 'Meta::Override',
+      version => '1.01',
       source => 'META.yml',
     },
     {
-      module_name => 'NoMeta',
-      module_version => '0.01',
+      name => 'NoMeta',
+      version => '0.01',
       source => 'META.yml',
     },
   ],
@@ -60,13 +60,13 @@ is_deeply(
       {
         name => 'Scan::Test',
         version => '0.10',
-        file => 'Scan-Test-0.10/lib/Scan/Test.pm',
+        file => 'lib/Scan/Test.pm',
       },
       {
         name => 'Scan::Test::Inner',
         # this gets the outer package's version; that seems like a bug, but...
         version => '0.10',
-        file => 'Scan-Test-0.10/lib/Scan/Test.pm',
+        file => 'lib/Scan/Test.pm',
       },
     ],
   },
