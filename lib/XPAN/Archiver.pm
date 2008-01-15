@@ -125,7 +125,11 @@ sub dists_by_name_iterator {
     DIST: {
       my $item = $iter->next;
       unless ($item) {
-        return @$last if $last->[0];
+        if ($last->[0]) {
+          my $return = $last;
+          $last = [ '' ];
+          return @$return;
+        }
         return;
       }
       unless ($last->[0] eq $item->name) {
