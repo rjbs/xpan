@@ -41,17 +41,17 @@ is_deeply(
   $d = $a->analyze($i->arg_to_filename('Package-Generator')),
   {
     name    => 'Package-Generator',
-    version => '0.100',
+    version => '0.102',
     modules => [
       {
         name => 'Package::Generator',
         file => 'lib/Package/Generator.pm',
-        version => '0.100',
+        version => '0.102',
       },
       {
         name => 'Package::Reaper',
         file => 'lib/Package/Reaper.pm',
-        version => '0.100',
+        version => '0.102',
       }
     ],
     dependencies => [
