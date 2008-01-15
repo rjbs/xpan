@@ -7,6 +7,12 @@ use base qw(XPAN::Object::HasArchiver);
 
 use Carp ();
 use CPAN::Checksums ();
+use HTTP::Date ();
+use IO::Zlib;
+
+my %FILE = (
+  '02packages' => '02packages.details.txt',
+);
 
 sub choose_distribution_version { Carp::croak "unimplemented" }
 
@@ -33,16 +39,30 @@ sub clear_index {
 
 sub build_index_files { }
 
-sub add_all_distributions {
-  my ($self) = @_;
+sub each_distribution {
+  my ($self, $code) = @_;
   my $iter = $self->archiver->dists_by_name_iterator;
   while (my ($name, $dists) = $iter->()) {
-#    use Data::Dumper;
-#    local $Data::Dumper::MaxDepth = 2;
-#    warn Dumper($name, $dists);
     my $dist = $self->choose_distribution_version(@$dists);
-    $self->add_distribution($dist);
+    local $_ = $dist;
+    $code->();
   }
+}
+
+sub all_distributions {
+  my ($self) = @_;
+  my @dists;
+  $self->each_distribution(sub { push @dists, $_ });
+  return @dists;
+}
+
+sub add_all_distributions {
+  my ($self) = @_;
+  $self->{packages} = [];
+  $self->each_distribution(sub {
+    $self->add_distribution($_);
+  });
+  $self->write_02packages;
 }
 
 sub add_distribution {
@@ -53,41 +73,57 @@ sub add_distribution {
 
 sub index_fh {
   my ($self, $filename) = @_;
+  $filename = $FILE{$filename};
   $self->{index_fh}{$filename} ||= do {
     $self->path->subdir('modules')->mkpath;
-    $filename = $self->path->subdir('modules')->file($filename);
-    open my $fh, ">", $filename or die "Can't open $filename: $!";
-    $fh;
+    $self->path->subdir('modules')->file($filename)->openw;
   };
+}
+
+sub gzip_index_file {
+  my ($self, $filename) = @_;
+  $filename = $FILE{$filename};
+  my $file = $self->path->subdir('modules')->file($filename);
+  my $fh = $file->openr;
+  my $gz = IO::Zlib->new("$file.gz", "w");
+  while (<$fh>) { print { $gz } $_ }
 }
 
 sub add_to_packages {
   my ($self, $dist) = @_;
-  my $exists = -e $self->path
-    ->subdir('modules')->file('02packages.details.txt');
-  my $fh = $self->index_fh('02packages.details.txt');
-  unless ($exists) {
-    print $fh <<END;
+  push @{ $self->{packages} }, $dist;
+}
+
+sub write_02packages {
+  my $self = shift;
+  my $fh = $self->index_fh('02packages');
+  print $fh sprintf <<END,
 File:         02packages.details.txt
 URL:          http://www.perl.com/CPAN/modules/02packages.details.txt
 Description:  Package names found in directory \$CPAN/authors/id/
 Columns:      package name, version, path
 Intended-For: Automated fetch routines, namespace documentation.
-Written-By:   ME
-Line-Count:   ???
-Last-Updated: ???
+Written-By:   LOCAL
+Line-Count:   %s
+Last-Updated: %s
 
 END
+    scalar @{ $self->{packages} },
+    HTTP::Date::time2str;
+
+  for my $dist (@{ $self->{packages} }) {
+    for my $module ($dist->modules) {
+      print $fh sprintf "%-30s %8s  %s\n",
+        $module->name,
+        (defined $module->version ? $module->version : 'undef'),
+          $self->author_dir('LOCAL')->relative(
+            $self->path->subdir('authors')->subdir('id')
+          )->file($dist->file),
+      ;
+    }
   }
-  for my $module ($dist->modules) {
-    print $fh sprintf "%-30s %8s  %s\n",
-      $module->name,
-      (defined $module->version ? $module->version : 'undef'),
-        $self->author_dir('LOCAL')->relative(
-          $self->path->subdir('authors')->subdir('id')
-        )->file($dist->file),
-    ;
-  }
+  close $fh;
+  $self->gzip_index_file('02packages');
 }
 
 sub author_dir {
