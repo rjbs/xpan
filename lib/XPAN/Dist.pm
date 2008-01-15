@@ -49,4 +49,8 @@ __PACKAGE__->meta->setup(
 );
 __PACKAGE__->make_manager_class;
 
+sub name_version {
+  return sprintf "%s-%s", $_[0]->name, $_[0]->version;
+}
+
 1;
