@@ -3,21 +3,10 @@ use warnings;
 
 package XPAN::Injector;
 
-use base qw(Rose::Object);
-use Rose::Object::MakeMethods::Generic (
-  'scalar --get_set_init' => [qw(archiver)],
-);
+use base qw(XPAN::Object::HasArchiver);
 
 use Scalar::Util ();
 use Carp ();
-
-sub init_archiver { Carp::croak "'archiver' is required" }
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-  Scalar::Util::weaken($self->{archiver}) if exists $self->{archiver};
-  return $self;
-}
 
 sub arg_to_filename {
   my ($self, $arg) = @_;

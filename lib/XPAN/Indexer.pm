@@ -3,15 +3,10 @@ use warnings;
 
 package XPAN::Indexer;
 
-use base qw(Rose::Object);
-use Rose::Object::MakeMethods::WeakRef (
-  'scalar --get_set_init' => [ 'archiver' ],
-);
+use base qw(XPAN::Object::HasArchiver);
 
 use Carp ();
 use CPAN::Checksums ();
-
-sub init_archiver { Carp::croak "'archiver' is required" }
 
 sub choose_distribution_version { Carp::croak "unimplemented" }
 
