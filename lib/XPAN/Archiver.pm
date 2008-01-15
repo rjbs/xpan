@@ -12,6 +12,12 @@ use Path::Class ();
 use File::Copy ();
 use XPAN::DB;
 
+sub new {
+  my $self = shift->SUPER::new(@_);
+  $self->db; # argh
+  return $self;
+}
+
 sub path {
   my $self = shift;
   if (@_) {
@@ -48,20 +54,29 @@ sub db {
   return $self->{db} ||= $self->init_db;
 }
 
-sub dist   { 'XPAN::Dist' }
-sub module { 'XPAN::Module' }
+sub dist       { require XPAN::Dist;       'XPAN::Dist' }
+sub module     { require XPAN::Module;     'XPAN::Module' }
+sub pinset     { require XPAN::Pinset;     'XPAN::Pinset' }
+sub pin        { require XPAN::Pin;        'XPAN::Pin' }
+sub dependency { require XPAN::Dependency; 'XPAN::Dependency' }
 
 sub do_transaction { shift->db->do_transaction(@_) }
 
-sub injector {
-  my ($self, $name) = @_;
-  $name = "XPAN::Injector::$name" if $name =~ s/^-//;
-  eval "require $name";
-  die $@ if $@;
-  return $self->{injector}{$name} ||= $name->new(
+my %related_loaded;
+sub _related_object {
+  my ($self, $default_base, $name) = @_;
+  $name = "$default_base\::$name" if $name =~ s/^-//;
+  unless ($related_loaded{$name}++) {
+    eval "require $name";
+    die $@ if $@;
+  }
+  return $self->{$default_base}{$name} ||= $name->new(
     archiver => $self,
   );
 }
+
+sub injector { shift->_related_object('XPAN::Injector', @_) }
+sub indexer  { shift->_related_object('XPAN::Indexer',  @_) }
 
 # should this return something useful?
 sub inject {
@@ -98,6 +113,32 @@ sub dist_from_file {
   );
 
   return $dist;
+}
+
+sub dists_by_name_iterator {
+  my $self = shift;
+  my $iter = $self->dist->manager->get_objects_iterator(
+    sort_by => [ qw(name version) ],
+  );
+  my $last = [ '' ];
+  return sub {
+    DIST: {
+      my $item = $iter->next;
+      return unless $item;
+      unless ($last->[0] eq $item->name) {
+        my $return = $last;
+        $last = [ $item->name => [ $item ] ];
+        # special case for the first time through
+        if ($return->[0]) {
+          return @$return;
+        } else {
+          redo DIST;
+        }
+      }
+      push @{ $last->[1] }, $item;
+      redo DIST;
+    }
+  };
 }
 
 1;
