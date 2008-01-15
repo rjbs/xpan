@@ -13,7 +13,7 @@ sub choose_distribution_version {
 
   my $chosen;
   for my $possible (@_) {
-    if (! $chosen or versioncmp($chosen->version, $possible->version) == 1) {
+    if (! $chosen or versioncmp($chosen->version, $possible->version) == -1) {
       $chosen = $possible;
     }
   }
