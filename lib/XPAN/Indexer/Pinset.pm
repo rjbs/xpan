@@ -33,7 +33,6 @@ sub choose_distribution_version {
   my ($match) = grep { $_->version eq $pin->version } @dists;
 
   unless ($match) {
-    require Data::Dumper;
     Carp::confess "no pin found matching " . $pin->as_string;
   }
 
