@@ -43,7 +43,7 @@ sub each_distribution {
   my ($self, $code) = @_;
   my $iter = $self->archiver->dists_by_name_iterator;
   while (my ($name, $dists) = $iter->()) {
-    my $dist = $self->choose_distribution_version(@$dists);
+    my $dist = $self->choose_distribution_version($name => @$dists);
     local $_ = $dist;
     $code->();
   }

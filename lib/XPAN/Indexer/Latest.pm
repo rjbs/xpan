@@ -10,7 +10,8 @@ sub name { 'latest' }
 
 sub choose_distribution_version {
   my $self = shift;
-
+  my $name = shift;
+  
   my $chosen;
   for my $possible (@_) {
     if (! $chosen or versioncmp($chosen->version, $possible->version) == -1) {
