@@ -64,13 +64,14 @@ sub do_transaction { shift->db->do_transaction(@_) }
 
 my %related_loaded;
 sub _related_object {
-  my ($self, $default_base, $name) = @_;
+  my ($self, $default_base, $name, @rest) = @_;
   $name = "$default_base\::$name" if $name =~ s/^-//;
   unless ($related_loaded{$name}++) {
     eval "require $name";
     die $@ if $@;
   }
-  return $self->{$default_base}{$name} ||= $name->new(
+  return $name->new(
+    @rest,
     archiver => $self,
   );
 }
