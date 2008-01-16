@@ -40,13 +40,21 @@ __PACKAGE__->meta->setup(
       column_map => { pinset_id => 'id' },
     },
 
-    dists => {
-      type       => 'one to many',
+    dist => {
+      type       => 'many to one',
       class      => 'XPAN::Dist',
-      column_map => { dist_id => 'id' },
+      column_map => { name => 'name', version => 'version' },
     },
   ],
 );
 __PACKAGE__->make_manager_class;
+
+sub as_string {
+  my $self = shift;
+  return sprintf '<pin name=%s version=%s>',
+    $self->name,
+    $self->version,
+  ;
+}
 
 1;
