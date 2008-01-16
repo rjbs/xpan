@@ -37,4 +37,13 @@ __PACKAGE__->meta->setup(
 );
 __PACKAGE__->make_manager_class;
 
+sub smart_find {
+  my ($class, $arg) = @_;
+  return $class->new(
+    $arg =~ /^\d+$/
+    ? (id => $arg)
+    : (name => $arg)
+  )->load;
+}
+
 1;
