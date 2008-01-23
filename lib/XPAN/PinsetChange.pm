@@ -15,16 +15,19 @@ has pinset => (
 has dists => (
   is => 'ro',
   isa => 'ArrayRef[XPAN::Dist]',
+  auto_deref => 1,
 );
 
 has changes => (
   is => 'ro',
+  isa => 'HashRef',
   lazy => 1,
   default => sub { shift->build_changes },
 );
 
 has conflicts => (
   is => 'ro',
+  isa => 'HashRef',
   lazy => 1,
   default => sub { shift->build_conflicts },
 );
@@ -84,17 +87,17 @@ sub build_changes {
 sub build_conflicts {
   my ($self) = @_;
   my $changes = $self->changes;
-  return (
-    {
-      map {
-        $_ => $changes->{$_}
-      }
-      grep {
-        $changes->{$_}{from} &&
-        $changes->{$_}{from}->comment # XXX lame
-      } keys %$changes
+  my $conflicts = {
+    map {
+      $_ => $changes->{$_}
     }
-  );
+    grep {
+      $changes->{$_}{from} &&
+      $changes->{$_}{from}->reason
+    } keys %$changes
+  };
+  return unless %$conflicts;
+  return $conflicts;
 }
 
 sub table {
@@ -112,6 +115,33 @@ sub table {
   }
 
   return $table->table;
+}
+
+sub apply {
+  my ($self) = @_;
+  my $changes = $self->changes;
+
+  if ($self->conflicts) {
+    Carp::confess "asked to apply changes, but conflicts are present";
+  }
+
+  $self->pinset->db->do_transaction(sub {
+    for (keys %$changes) {
+      my $dist = $changes->{$_}{to};
+      if (my $pin = $changes->{$_}{from}) {
+        $pin->version($dist->version);
+        $pin->save;
+      } else {
+        $self->pinset->add_pins(
+          {
+            name => $dist->name,
+            version => $dist->version,
+          }
+        );
+      }
+    }
+    $self->pinset->save;
+  });
 }
 
 1;
