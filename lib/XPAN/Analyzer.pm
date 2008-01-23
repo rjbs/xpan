@@ -3,14 +3,14 @@ use warnings;
 
 package XPAN::Analyzer;
 
-use Moose;
-
 use CPAN::DistnameInfo;
 use File::pushd ();
 use Path::Class ();
 use ExtUtils::Manifest ();
 use Cwd ();
 require ExtUtils::MM;
+
+sub new { bless {} => shift }
 
 sub parse_meta {
   my ($self, $yaml) = @_;
