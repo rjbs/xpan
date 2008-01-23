@@ -53,12 +53,4 @@ sub change {
   return XPAN::PinsetChange->new(pinset => $self, @_);
 }
 
-use Carp;
-sub pinned_version {
-  my ($self, $name) = @_;
-  my ($pin) = $self->find_pins({ name => $name });
-  Carp::croak "no pin for '$name'" unless $pin;
-  return $pin->version;
-}
-
 1;
