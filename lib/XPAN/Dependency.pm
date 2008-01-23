@@ -67,6 +67,14 @@ sub matches {
   die "argument to matches() must be a Pinset, Pin, Dist, or Module (not $arg)"
     unless Scalar::Util::blessed($arg);
 
+  if ($arg->isa('XPAN::Archiver')) {
+    my $modules = $arg->module->manager->get_objects(
+      query => [ name => $self->name ],
+      db => $self->db,
+    );
+    return 0 < grep { $self->matches($_) } @$modules;
+  }
+
   if ($arg->isa('XPAN::Pinset')) {
     my ($pin) = $arg->find_pins(
       require_objects => [ 'dist.modules' ],
