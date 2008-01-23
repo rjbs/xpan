@@ -31,7 +31,7 @@ __PACKAGE__->meta->setup(
 
   primary_key_columns => ['id'],
 
-  unique_keys => [ ['name', 'version' ] ],
+  unique_keys => [ [ qw(name version) ] ],
 
   relationships => [
     modules => {

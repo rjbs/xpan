@@ -3,6 +3,7 @@ use warnings;
 
 package XPAN::Object;
 
-use base qw(Rose::Object);
+use Moose;
+no Moose;
 
 1;

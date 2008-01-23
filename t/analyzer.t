@@ -2,10 +2,13 @@ use strict;
 use warnings;
 
 use Test::More 'no_plan';
+use lib 't/lib';
+use XPAN::Archiver::Test;
 use XPAN::Analyzer;
 use Path::Class;
 
-my $anz = XPAN::Analyzer->new;
+my $archiver = XPAN::Archiver::Test->new;
+my $anz = $archiver->analyzer;
 
 my $dist = dir('t/dist');
 my $no_meta = $dist->file('NoMeta-0.02.tar.gz');

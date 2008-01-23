@@ -3,15 +3,14 @@ use warnings;
 
 package XPAN::Object::HasArchiver;
 
-use base qw(XPAN::Object);
+use Moose;
+extends 'XPAN::Object';
 
-use Rose::Object::MakeMethods::WeakRef (
-  scalar => [
-    archiver => { interface => 'get_set_init' },
-  ],
+has archiver => (
+  is       => 'ro',
+  required => 1,
+  isa      => 'XPAN::Archiver',
+  weak_ref => 1,
 );
-
-use Carp;
-sub init_archiver { Carp::croak "'archiver' is required" }
 
 1;

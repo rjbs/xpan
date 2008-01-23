@@ -31,14 +31,77 @@ __PACKAGE__->meta->setup(
 
   primary_key_columns => ['id'],
 
-  relationships => [
+  foreign_keys => [
     dist => {
-      type => 'many to one',
       class => 'XPAN::Dist',
-      column_map => { dist_id => 'id' },
+      key_columns => { dist_id => 'id' },
     },
   ],
+
+  unique_keys => [ [ qw(dist_id name) ] ],
 );
 __PACKAGE__->make_manager_class;
+
+use Sort::Versions ();
+use Carp ();
+use Scalar::Util ();
+
+sub matching_modules {
+  my ($self) = @_;
+  
+  require XPAN::Module;
+  return grep {
+    $self->matches($_)
+  } @{ XPAN::Module->manager->get_objects(
+    query => [
+      name => $self->name,
+    ],
+    db => $self->db,
+  ) };
+}
+
+sub matches {
+  my ($self, $arg) = @_;
+
+  my $module;
+  die "argument to matches() must be a Pinset, Pin, Dist, or Module (not $arg)"
+    unless Scalar::Util::blessed($arg);
+
+  if ($arg->isa('XPAN::Pinset')) {
+    my ($pin) = $arg->find_pins(
+      require_objects => [ 'dist.modules' ],
+      query => [
+        'dist.modules.name' => $self->name,
+      ],
+    );
+    unless ($pin) {
+      Carp::croak "pinset $arg has no pin for " . $self->dist->name;
+    }
+    $arg = $pin;
+  }
+
+  if ($arg->isa('XPAN::Pin')) {
+    $arg = $arg->dist;
+  }
+
+  if ($arg->isa('XPAN::Dist')) {
+    warn "looking for " . $self->name . " in " . $arg->name . "\n";
+    ($arg) = $arg->find_modules({ name => $self->name });
+    return unless $arg;
+  }
+  
+  if ($arg->isa('XPAN::Module')) {
+    return Sort::Versions::versioncmp($arg->version, $self->version) >= 0;
+  } else {
+    Carp::croak "unhandled argument to matches(): $arg";
+  }
+
+}
+
+sub as_string {
+  my ($self) = @_;
+  return sprintf '<dep name=%s version=%s>',
+    $self->name, $self->version;
+}
 
 1;

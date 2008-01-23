@@ -13,7 +13,7 @@ CREATE TABLE pins (
   name VARCHAR(100) NOT NULL,
   version VARCHAR(20),
   manual INTEGER NOT NULL DEFAULT 0,
-  comment TEXT,
+  reason TEXT,
   UNIQUE(pinset_id, name) 
 );
 END
@@ -25,25 +25,25 @@ __PACKAGE__->meta->setup(
   columns => [
     id        => { type => 'integer', not_null => 1 },
     pinset_id => { type => 'integer', not_null => 1 },
-    name     => { type => 'varchar', length   => 100, not_null => 1 },
-    version  => { type => 'varchar', length   => 20 },
+    name      => { type => 'varchar', length   => 100, not_null => 1 },
+    version   => { type => 'varchar', length   => 20 },
     manual    => { type => 'integer', not_null => 1, default => 0 },
-    comment   => { type => 'text' },
+    reason    => { type => 'text' },
   ],
 
   primary_key_columns => ['id'],
 
-  relationships => [
+  unique_keys => [ [ qw(pinset_id name) ] ],
+
+  foreign_keys => [
     pinset => {
-      type       => 'many to one',
-      class      => 'XPAN::Pinset',
-      column_map => { pinset_id => 'id' },
+      class => 'XPAN::Pinset',
+      key_columns => { pinset_id => 'id' },
     },
 
     dist => {
-      type       => 'many to one',
-      class      => 'XPAN::Dist',
-      column_map => { name => 'name', version => 'version' },
+      class => 'XPAN::Dist',
+      key_columns => { name => 'name', version => 'version' },
     },
   ],
 );

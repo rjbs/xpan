@@ -32,13 +32,14 @@ __PACKAGE__->meta->setup(
 
   primary_key_columns => ['id'],
 
-  relationships => [
+  foreign_keys => [
     dist => {
-      type => 'many to one',
       class => 'XPAN::Dist',
-      column_map => { dist_id => 'id' },
+      key_columns => { dist_id => 'id' },
     },
   ],
+
+  unique_keys => [ [ qw(dist_id name) ] ],
 );
 __PACKAGE__->make_manager_class;
 

@@ -3,11 +3,13 @@ use warnings;
 
 package XPAN::Analyzer;
 
-use base qw(Rose::Object);
+use Moose;
+
 use CPAN::DistnameInfo;
 use File::pushd ();
 use Path::Class ();
 use ExtUtils::Manifest ();
+use Cwd ();
 require ExtUtils::MM;
 
 sub parse_meta {
@@ -90,6 +92,41 @@ sub _ignore_pmfile {
   return 1 if $pmfile =~ m{^(inc|t)/};
 }
 
+sub _find_dist_dir {
+  my ($self) = @_;
+
+  my $cwd = Path::Class::dir(Cwd::cwd());
+
+  my @children = $cwd->children;
+  if (@children == 1 and $children[0]->is_dir) {
+    return $children[0];
+  }
+
+  my %files = %{ ExtUtils::Manifest::manifind() };
+
+  my (@dist_files) = grep {
+    /\bMANIFEST(\.SKIP)?\b/ ||
+    /\bMakefile.PL\b/ ||
+    /\bBuild.PL\b/
+  } keys %files;
+
+  if (@dist_files) {
+    return Path::Class::file($dist_files[0])->dir;
+  }
+
+  my @pm_files = grep { /\.pm$/i } keys %files;
+
+  if (@pm_files) {
+    my $file = Path::Class::file($pm_files[0]);
+    while ($file->dir) {
+      $file = $file->dir;
+    }
+    return $file;
+  }
+
+  die "can't figure out root directory";
+}
+
 sub scan_for_modules {
   my ($self, $tar) = @_;
   if (not ref $tar) {
@@ -100,17 +137,18 @@ sub scan_for_modules {
 
   my %pkg;
   {
-    my $dir = File::pushd::tempd;
+    my $temp_dir = File::pushd::tempd;
 
     $tar->extract;
 
-    my ($MANIFEST) = grep { m{\bMANIFEST(?!\.SKIP)\b} }
-      keys %{ ExtUtils::Manifest::manifind() };
     {
-      my $dist_dir = File::pushd::pushd(Path::Class::file($MANIFEST)->dir);
+      #warn "using $dist_file to determine root\n";
+      my $dist_dir = File::pushd::pushd( $self->_find_dist_dir );
+      #warn "$dist_file is in $dist_dir\n";
       my @pmfiles = grep { /\.pm$/i } keys %{ ExtUtils::Manifest::manifind() };
 
       foreach my $pmfile (grep { ! $self->_ignore_pmfile($_) } @pmfiles) {
+        #warn "parsing: $pmfile\n";
         
         my $hash = $self->parse_packages_from_pm($pmfile);
         next if not defined $hash;

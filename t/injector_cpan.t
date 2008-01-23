@@ -2,11 +2,12 @@ use strict;
 use warnings;
 
 use Test::More 'no_plan';
-use XPAN::Injector::CPAN;
-use XPAN::Analyzer;
+use lib 't/lib';
+use XPAN::Archiver::Test;
 
-my $i = XPAN::Injector::CPAN->new;
-my $a = XPAN::Analyzer->new;
+my $archiver = XPAN::Archiver::Test->new;
+my $i = $archiver->injector(-CPAN);
+my $a = $archiver->analyzer;
 my $d;
 
 is_deeply(

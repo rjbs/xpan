@@ -31,6 +31,14 @@ sub scrape {
     die "no distributions found matching '$name'";
   }
 
+  my $dist = $self->archiver->dist->new(
+    name => $d[-1]->dist,
+    version => $d[-1]->version,
+  )->load(speculative => 1);
+  if ($dist) {
+    die "'$name' is already a distribution";
+  }
+
   return "http://backpan.cpan.org/" . $d[-1]->prefix;
 }
 
