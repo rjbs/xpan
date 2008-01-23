@@ -3,15 +3,25 @@ use warnings;
 
 package XPAN::Injector::Mech;
 
-use base qw(XPAN::Injector);
-use Rose::Object::MakeMethods::Generic (
-  'scalar --get_set_init' => 'mech'
+use Moose;
+extends 'XPAN::Injector';
+
+has mech => (
+  is => 'ro',
+  lazy => 1,
+  isa => 'WWW::Mechanize',
+  default => sub { shift->mech_class->new },
+);
+
+has mech_class => (
+  is => 'ro',
+  lazy => 1,
+  default => sub { 'WWW::Mechanize' },
 );
 
 use File::Temp ();
 use File::Basename ();
 use WWW::Mechanize;
-sub init_mech { WWW::Mechanize->new }
 
 sub arg_to_filename {
   my ($self, $arg) = @_;
