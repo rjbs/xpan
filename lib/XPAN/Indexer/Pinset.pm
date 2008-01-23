@@ -3,22 +3,30 @@ use warnings;
 
 package XPAN::Indexer::Pinset;
 
-use base qw(XPAN::Indexer::Latest);
-use Rose::Object::MakeMethods::Generic (
-  'scalar --get_set_init' => 'pinset',
+use Moose;
+extends 'XPAN::Indexer::Latest';
+
+use Moose::Util::TypeConstraints;
+
+subtype 'Pinset'
+  => as 'Object'
+  => where { $_->isa('XPAN::Pinset') };
+
+coerce 'Pinset'
+  => from 'Int'
+  => via { XPAN::Pinset->new(id => $_)->load }
+  => from 'Str'
+  => via { XPAN::Pinset->new(name => $_)->load };
+
+has pinset => (
+  is => 'ro',
+  isa => 'Pinset',
+  required => 1,
+  coerce => 1,
+  handles => [qw(name)],
 );
 
 use Carp;
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-  $self->{pinset} &&= $self->archiver->pinset->smart_find($self->{pinset});
-  return $self;
-}
-
-sub init_pinset { Carp::croak "'pinset' is required" }
-
-sub name { shift->pinset->name }
 
 sub choose_distribution_version {
   my $self = shift;
