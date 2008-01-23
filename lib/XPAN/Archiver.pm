@@ -11,6 +11,7 @@ use Rose::Object::MakeMethods::Generic (
 use Path::Class ();
 use File::Copy ();
 use XPAN::DB;
+use CPAN::DistnameInfo;
 
 sub new {
   my $self = shift->SUPER::new(@_);
@@ -149,4 +150,57 @@ sub dists_by_name_iterator {
   };
 }
 
+sub find_pinset {
+  my ($self, $arg) = @_;
+  return $self->pinset->new(
+    ($arg =~ /^\d+$/
+      ? (id => $arg)
+      : (name => $arg)
+    ),
+  )->load;
+}
+
+sub find_dist {
+  my ($self, $arg) = @_;
+  
+  if ($arg =~ /::/) {
+    my ($name, $version) = split /\s+/, $arg;
+    my $modules = $self->module->manager->get_objects(
+      query => [
+        name => $name,
+        $version ? (version => $version) : (),
+      ],
+      db => $self->db,
+      sort_by => 'version DESC',
+    );
+
+    unless (@$modules) {
+      Carp::confess "can't find_dist, no matching modules: $arg";
+    }
+
+    return $modules->[0]->dist;
+  }
+
+  my $dinfo = CPAN::DistnameInfo->new("$arg.tar.gz");
+
+  unless ($dinfo) {
+    Carp::confess "can't parse argument as module or dist name: $arg";
+  }
+
+  my $dists = $self->dist->manager->get_objects(
+    query => [
+      name => $dinfo->dist,
+      $dinfo->version ? (version => $dinfo->version) : (),
+    ],
+    db => $self->db,
+    sort_by => 'version DESC',
+  );
+
+  unless (@$dists) {
+    Carp::confess "can't find_dist, no matching dists: $arg";
+  }
+
+  return $dists->[0];
+}
+      
 1;
