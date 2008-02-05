@@ -14,5 +14,7 @@ requires 'App::Cmd' => 0;
 
 auto_install;
 
+install_script 'script/xpan';
+
 WriteAll;
 
