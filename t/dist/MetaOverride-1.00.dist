@@ -1,0 +1,7 @@
+---
+files:
+  META.yml: |
+    --- #YAML:1.0
+    name: Meta-Override
+    version: 0.100
+    abstract: a dist where META.yml overrides the filename

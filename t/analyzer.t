@@ -5,15 +5,17 @@ use Test::More 'no_plan';
 use lib 't/lib';
 use XPAN::Archiver::Test;
 use XPAN::Analyzer;
-use Path::Class;
+use TestDist::Loader;
 
 my $archiver = XPAN::Archiver::Test->new;
 my $anz = $archiver->analyzer;
 
-my $dist = dir('t/dist');
-my $no_meta = $dist->file('NoMeta-0.02.tar.gz');
-my $meta_over = $dist->file('MetaOverride-1.00.tar.gz');
-my $has_deps  = $dist->file('HasDeps-0.12.tar.gz');
+my $loader = TestDist::Loader->new;
+
+my $no_meta     = $loader->file('NoMeta-0.02.tar.gz');
+my $meta_over   = $loader->file('MetaOverride-1.00.tar.gz');
+my $has_deps    = $loader->file('HasDeps-0.12.tar.gz');
+my $broken_meta = $loader->file('BrokenMeta.tar.gz');
 
 is_deeply(
   $anz->analyze("$no_meta"),
@@ -29,6 +31,15 @@ is_deeply(
     abstract => 'a dist where META.yml overrides the filename',
   },
   "analyzed with META.yml taking precedence",
+);
+
+is_deeply(
+  $anz->analyze("$broken_meta"),
+  {
+    name => 'BrokenMeta',
+    version => '0.01'
+  },
+  "analyzed with manual override for META.yml",
 );
 
 is_deeply(
@@ -57,7 +68,7 @@ is_deeply(
 );
 
 is_deeply(
-  { $anz->scan_for_modules($dist->file('Scan-Test-0.10.tar.gz') . "") },
+  { $anz->scan_for_modules($loader->file('Scan-Test-0.10.tar.gz') . "") },
   {
     modules => [
       {
