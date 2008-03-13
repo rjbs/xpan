@@ -6,6 +6,7 @@ package XPAN::Archiver::Test;
 use base qw(XPAN::Archiver);
 
 use File::Temp ();
+use Test::More ();
 
 sub new {
   my $class = shift;
@@ -23,6 +24,20 @@ sub test_distribution_files {
 sub inject_test_distributions {
   my $self = shift;
   $self->inject(-File => [ $self->test_distribution_files ]);
+}
+
+sub contains_dist_ok {
+  my ($self, $name, $version) = @_;
+  my $info = $name;
+  $info .= "-$version" if @_ > 2;
+  my $description = "test archiver contains $info";
+  my $dist = eval { $self->find_dist($info) };
+  Test::More::ok(
+    $dist &&
+    $dist->name eq $name &&
+    @_ > 2 ? ($dist->version eq $version) : 1,
+    $description,
+  );
 }
 
 1;
