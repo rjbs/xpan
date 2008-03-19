@@ -1,0 +1,7 @@
+---
+name: NoMeta
+version: 0.02
+
+Faker:
+  omitted_files:
+    - META.yml
