@@ -5,6 +5,7 @@ all_from 'lib/XPAN.pm';
 author   'Hans Dieter Pearcey <hdp@cpan.org>';
 
 build_requires 'Test::More';
+build_requires 'Module::Faker' => 0.004; # omitted_files
 
 requires 'App::Cmd'     => 0;
 requires 'CPAN::SQLite' => 0;

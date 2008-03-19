@@ -1,5 +1,6 @@
 ---
 name: NoMeta
+provides: {}
 version: 0.02
 
 Faker:
