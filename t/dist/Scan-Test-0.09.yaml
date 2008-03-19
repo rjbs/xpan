@@ -1,0 +1,10 @@
+---
+name: Scan-Test
+version: 0.09
+provides:
+  Scan::Test:
+    version: 0.09
+    file: lib/Scan/Test.pm
+  Scan::Test::Inner:
+    version: 0.12
+    file: lib/Scan/Test.pm
