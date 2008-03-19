@@ -5,6 +5,10 @@ provides:
   Scan::Test:
     version: 0.09
     file: lib/Scan/Test.pm
+    Faker:
+      order: 1
   Scan::Test::Inner:
     version: 0.12
     file: lib/Scan/Test.pm
+    Faker:
+      order: 2
