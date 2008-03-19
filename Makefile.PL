@@ -13,8 +13,6 @@ requires 'Moose'        => 0;
 requires 'Rose::DB::Object' => 0;
 requires 'WWW::Mechanize'   => 0;
 
-auto_install;
-
 install_script 'script/xpan';
 
 WriteAll;
