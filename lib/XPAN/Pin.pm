@@ -13,7 +13,8 @@ CREATE TABLE pins (
   name VARCHAR(100) NOT NULL,
   version VARCHAR(20),
   manual INTEGER NOT NULL DEFAULT 0,
-  reason TEXT,
+  install_reason TEXT,
+  hard_pin_reason TEXT,
   UNIQUE(pinset_id, name) 
 );
 END
@@ -23,12 +24,13 @@ __PACKAGE__->meta->setup(
   table => 'pins',
 
   columns => [
-    id        => { type => 'integer', not_null => 1 },
-    pinset_id => { type => 'integer', not_null => 1 },
-    name      => { type => 'varchar', length   => 100, not_null => 1 },
-    version   => { type => 'varchar', length   => 20 },
-    manual    => { type => 'integer', not_null => 1, default => 0 },
-    reason    => { type => 'text' },
+    id              => { type => 'integer', not_null => 1 },
+    pinset_id       => { type => 'integer', not_null => 1 },
+    name            => { type => 'varchar', length   => 100, not_null => 1 },
+    version         => { type => 'varchar', length   => 20 },
+    manual          => { type => 'integer', not_null => 1, default => 0 },
+    install_reason  => { type => 'text' },
+    hard_pin_reason => { type => 'text' },
   ],
 
   primary_key_columns => ['id'],

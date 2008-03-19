@@ -13,6 +13,8 @@ CREATE TABLE dists (
   version VARCHAR(20),
   abstract TEXT,
   file VARCHAR(110) NOT NULL,
+  origin TEXT,
+  authority TEXT,
   UNIQUE(name, version)
 );
 END
@@ -22,11 +24,13 @@ __PACKAGE__->meta->setup(
   table   => 'dists',
 
   columns => [
-    id       => { type => 'integer', not_null => 1 },
-    name     => { type => 'varchar', length   => 100, not_null => 1 },
-    version  => { type => 'varchar', length   => 20 },
-    file     => { type => 'varchar', length   => 110, not_null => 1 },
-    abstract => { type => 'text' },
+    id        => { type => 'integer', not_null => 1 },
+    name      => { type => 'varchar', length   => 100, not_null => 1 },
+    version   => { type => 'varchar', length   => 20 },
+    file      => { type => 'varchar', length   => 110, not_null => 1 },
+    abstract  => { type => 'text' },
+    origin    => { type => 'text' },
+    authority => { type => 'text' },
   ],
 
   primary_key_columns => ['id'],

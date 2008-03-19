@@ -1,0 +1,12 @@
+---
+files:
+  Makefile.PL: |
+    use ExtUtils::MakeMaker;
+    WriteMakefile(
+      DISTNAME => 'FromSVN',
+      VERSION  => '0.01',
+      NAME     => 'FromSVN',
+      ABSTRACT => 'test svn dist',
+    );
+  MANIFEST: |
+    Makefile.PL
