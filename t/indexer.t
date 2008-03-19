@@ -12,7 +12,7 @@ my $indexer = $archiver->indexer(-Latest);
 $indexer->build;
 
 my $cpan = CPAN::SQLite->new(
-  CPAN => $indexer->path,
+  CPAN   => $indexer->path,
   db_dir => $indexer->path,
 );
 $cpan->index(setup => 1);

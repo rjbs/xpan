@@ -6,6 +6,7 @@ package XPAN::Archiver::Test;
 use base qw(XPAN::Archiver);
 
 use File::Temp ();
+use Module::Faker ();
 use Test::More ();
 
 sub new {
@@ -18,7 +19,13 @@ sub new {
 }
 
 sub test_distribution_files {
-  return <t/dist/*.tar.gz>
+  my $tmp_archive_dir = File::Temp::tempdir(CLEANUP => 1);
+  Module::Faker->make_fakes({
+    source => 't/dist/',
+    dest   => $tmp_archive_dir,
+  });
+
+  return <$tmp_archive_dir/*.tar.gz>
 }
 
 sub inject_test_distributions {
