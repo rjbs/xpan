@@ -7,7 +7,7 @@ author   'Hans Dieter Pearcey <hdp@cpan.org>';
 build_requires 'Test::More';
 
 requires 'App::Cmd'     => 0;
-requires 'CPAN::SQLite' => 0
+requires 'CPAN::SQLite' => 0;
 requires 'File::pushd'  => 0;
 requires 'Moose'        => 0;
 requires 'Rose::DB::Object' => 0;
