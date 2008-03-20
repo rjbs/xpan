@@ -15,9 +15,9 @@ sub arg_to_filename {
 
 sub inject {
   my $self = shift;
-  warn "inject: $self @_\n";
+  #warn "inject: $self @_\n";
   for my $arg (@_) {
-    warn "$self => $arg\n";
+    #warn "$self => $arg\n";
     eval { 
       $self->archiver->dist_from_file(
         $self->arg_to_filename($arg)

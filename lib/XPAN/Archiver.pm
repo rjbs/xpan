@@ -89,7 +89,7 @@ sub inject {
       my ($name, $args) = splice @args, 0, 2;
 
       my $injector = $self->injector($name);
-      warn "injecting: $name => $injector -> @$args\n";
+      #warn "injecting: $name => $injector -> @$args\n";
       $injector->inject(@$args);
     }
   });
