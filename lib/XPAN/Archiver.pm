@@ -3,39 +3,53 @@ use warnings;
 
 package XPAN::Archiver;
 
-use Carp;
-use base qw(Rose::Object);
-use Rose::Object::MakeMethods::Generic (
-  'scalar --get_set_init' => [qw(analyzer analyzer_class)],
-);
+use Carp ();
 use Path::Class ();
 use File::Copy ();
 use XPAN::DB;
 use CPAN::DistnameInfo;
 
-sub new {
-  my $self = shift->SUPER::new(@_);
-  $self->db; # argh
-  return $self;
-}
+use Moose;
+use Moose::Util::TypeConstraints;
 
-sub path {
-  my $self = shift;
-  if (@_) {
-    $self->{path} = Path::Class::dir(shift);
-    $self->{path}->mkpath;
-  }
-  return $self->{path} || Carp::croak("'path' is required");
-}
+find_type_constraint('Path::Class::Dir') ||
+  class_type('Path::Class::Dir');
 
-sub init_analyzer_class { 'XPAN::Analyzer' }
+coerce 'Path::Class::Dir'
+  => from 'Str'
+  => via { Path::Class::dir($_) };
 
-sub init_analyzer {
-  my $class = shift->analyzer_class;
-  eval "require $class";
-  die $@ if $@;
-  $class->new;
-}
+has analyzer => (
+  is => 'ro',
+  lazy => 1,
+  default => sub {
+    my $class = shift->analyzer_class;
+    eval "require $class";
+    die $@ if $@;
+    $class->new;
+  },
+);
+
+has analyzer_class => (
+  is => 'ro',
+  default => 'XPAN::Analyzer',
+);
+
+has path => (
+  is => 'rw',
+  isa => 'Path::Class::Dir',
+  coerce => 1,
+  required => 1,
+);
+
+has db => (
+  isa => 'XPAN::DB',
+  is => 'ro',
+  lazy => 1,
+  default => sub { shift->init_db },
+);
+
+sub BUILD { shift->init_db }
 
 sub init_db {
   my $self = shift;
@@ -48,11 +62,6 @@ sub init_db {
   my $db = XPAN::DB->new;
   $db->create_tables unless $exists;
   return $db;
-}
-
-sub db {
-  my ($self) = @_;
-  return $self->{db} ||= $self->init_db;
 }
 
 sub dist       { require XPAN::Dist;       'XPAN::Dist' }

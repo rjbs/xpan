@@ -3,26 +3,27 @@ use warnings;
 
 package XPAN::Archiver::Test;
 
-use base qw(XPAN::Archiver);
+use Moose;
+extends 'XPAN::Archiver';
 
-use Rose::Object::MakeMethods::Generic(
-  'scalar --get_set_init' => [qw(inject_tests)],
+has inject_tests => (
+  is => 'ro',
+  isa => 'Bool',
+  default => 1,
+);
+
+has '+path' => (
+  default => sub { File::Temp::tempdir(CLEANUP => 1) },
 );
 
 use File::Temp ();
 use Module::Faker ();
 use Test::More ();
 
-sub new {
-  my $class = shift;
-  my %p = @_;
-  $p{path} ||= File::Temp::tempdir(CLEANUP => 1);
-  my $self = $class->SUPER::new(%p);
+sub BUILD {
+  my ($self) = @_;
   $self->inject_test_distributions if $self->inject_tests;
-  return $self;
 }
-
-sub init_inject_tests { 1 }
 
 sub test_distribution_files {
   my $tmp_archive_dir = File::Temp::tempdir(CLEANUP => 1);
