@@ -49,8 +49,6 @@ has db => (
   default => sub { shift->init_db },
 );
 
-sub BUILD { shift->init_db }
-
 sub init_db {
   my $self = shift;
   my $db_path = $self->path->file('xpan.db');
