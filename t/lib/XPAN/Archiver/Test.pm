@@ -22,7 +22,7 @@ sub new {
   return $self;
 }
 
-sub init_inject_test { 1 }
+sub init_inject_tests { 1 }
 
 sub test_distribution_files {
   my $tmp_archive_dir = File::Temp::tempdir(CLEANUP => 1);
