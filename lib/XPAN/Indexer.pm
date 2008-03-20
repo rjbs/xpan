@@ -143,7 +143,7 @@ sub add_distribution_link {
 
   my $target =
     $self->archiver->path->subdir('dist')->file($dist->file)->absolute;
-  warn "linking $file -> $target\n";
+  #warn "linking $file -> $target\n";
   symlink(
     $target,
     $file,
