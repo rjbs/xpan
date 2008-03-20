@@ -1,18 +1,18 @@
 use strict;
 use warnings;
 use Test::More 'no_plan';
-use XPAN::Archiver;
-use File::Temp;
+use lib 't/lib';
+use XPAN::Archiver::Test;
+use Module::Faker::Dist;
 
-my $dir = File::Temp::tempdir(CLEANUP => 1);
-
-my $archiver = XPAN::Archiver->new(
-  path => $dir,
-);
+my $archiver = XPAN::Archiver::Test->new(inject_tests => 0);
 
 $archiver->inject(-File => [
-  't/dist/Scan-Test-0.10.tar.gz',
-  't/dist/Scan-Test-0.09.tar.gz',
+  map { 
+    Module::Faker::Dist
+      ->from_file("t/dist/Scan-Test-$_.yaml")
+      ->make_archive
+  } qw(0.09 0.10)
 ]);
 
 my $iter = $archiver->dists_by_name_iterator;
