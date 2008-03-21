@@ -8,6 +8,9 @@ use Path::Class ();
 use File::Copy ();
 use XPAN::DB;
 use CPAN::DistnameInfo;
+use URI;
+
+use Module::Pluggable::Object;
 
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -18,6 +21,60 @@ find_type_constraint('Path::Class::Dir') ||
 coerce 'Path::Class::Dir'
   => from 'Str'
   => via { Path::Class::dir($_) };
+
+# injector plugins
+
+sub default_injector_path { qw(XPAN::Injector) }
+
+has extra_injector_paths => (
+  is => 'ro',
+  lazy => 1,
+  isa => 'ArrayRef[Str]',
+  auto_deref => 1,
+  default => sub { [] },
+);
+
+has injector_pluggable => (
+  is => 'ro',
+  lazy => 1,
+  default => sub {
+    my ($self) = @_;
+    Module::Pluggable::Object->new(
+      require => 1,
+      search_path => [
+        $self->extra_injector_paths,
+        $self->default_injector_path,
+      ],
+    );
+  },
+);
+
+has injector_class_map => (
+  is => 'rw',
+  lazy => 1,
+  isa => 'HashRef',
+  default => sub {
+    my ($self) = @_;
+    my %map;
+    for my $i_class ($self->injector_pluggable->plugins) {
+      unless ($i_class->can('does') and $i_class->does('XPAN::Injector')) {
+        warn "injector plugin $i_class does not fulfill role XPAN::Injector\n";
+        next;
+      }
+      $map{$i_class->scheme} ||= $i_class;
+    }
+    return \%map; 
+  },
+);
+
+has injectors => (
+  is => 'rw',
+  lazy => 1,
+  isa => 'HashRef',
+  default => sub { {} },
+);
+
+# analyzer
 
 has analyzer => (
   is => 'ro',
@@ -34,6 +91,8 @@ has analyzer_class => (
   is => 'ro',
   default => 'XPAN::Analyzer',
 );
+
+# other attributes
 
 has path => (
   is => 'rw',
@@ -62,6 +121,8 @@ sub init_db {
   return $db;
 }
 
+# DB accessors
+
 sub dist       { require XPAN::Dist;       'XPAN::Dist' }
 sub module     { require XPAN::Module;     'XPAN::Module' }
 sub pinset     { require XPAN::Pinset;     'XPAN::Pinset' }
@@ -84,43 +145,63 @@ sub _related_object {
   );
 }
 
-sub injector { shift->_related_object('XPAN::Injector', @_) }
 sub indexer  { shift->_related_object('XPAN::Indexer',  @_) }
 
+sub injector_for {
+  my ($self, $scheme) = @_;
+  return $self->injectors->{$scheme} ||= do {
+    my $i_class = $self->injector_class_map->{$scheme}
+      or Carp::croak "no injector class found for $scheme://";
+    $i_class->new(archiver => $self);
+  };
+}
+
 # should this return something useful?
-sub inject {
+sub auto_inject {
   my $self = shift;
   my @args = @_;
   $self->do_transaction(sub {
-    while (@args) {
-      my ($name, $args) = splice @args, 0, 2;
+    for (@args) {
+      my ($url, $handler);
+      if (blessed($_) && $_->isa('URI')) {
+        $url = $_;
+      } else {
+        if (s/^(.+?):://) {
+          $handler = $1;
+        }
+        $url = URI->new("$_");
+      }
+      $handler ||= $url->scheme;
 
-      my $injector = $self->injector($name);
-      #warn "injecting: $name => $injector -> @$args\n";
-      $injector->inject(@$args);
+      my $injector = $self->injector_for($handler);
+
+      warn "injecting: $injector => $url\n";
+      $injector->inject($url);
     }
   });
   die $self->db->error if $self->db->error;
 }
 
-sub dist_from_file {
-  my ($self, $filename) = @_;
+sub inject_one {
+  my ($self, $source, $arg) = @_;
+
+  unless ($source and %$arg) {
+    Carp::croak "usage: \$archiver->inject_one(\$source, \\%arg)";
+  }
 
   my $dir = $self->path->subdir('dist');
   $dir->mkpath;
 
-  my $dist_file = Path::Class::file($filename)->basename;
   require XPAN::Dist;
   my $dist = $self->dist->new(
-    %{ $self->analyzer->analyze($filename) },
-    file => $dist_file,
+    %$arg,
+    db => $self->db,
   );
-
   File::Copy::copy(
-    $filename,
-    $dir->file($dist_file),
+    $source,
+    $dir->file($arg->{file}),
   );
-
+  $dist->save;
   return $dist;
 }
 
