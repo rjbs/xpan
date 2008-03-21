@@ -7,13 +7,14 @@ use Module::Faker::Dist;
 
 my $archiver = XPAN::Archiver::Test->new(inject_tests => 0);
 
-$archiver->inject(-File => [
+$archiver->auto_inject(
   map { 
+    'file://' .
     Module::Faker::Dist
       ->from_file("t/dist/Scan-Test-$_.yaml")
       ->make_archive
   } qw(0.09 0.10)
-]);
+);
 
 my $iter = $archiver->dists_by_name_iterator;
 
