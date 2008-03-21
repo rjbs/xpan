@@ -3,10 +3,12 @@ use warnings;
 
 package XPAN::Injector::File;
 
-use base qw(XPAN::Injector);
+use Moose;
+
+with qw(XPAN::Object::HasArchiver XPAN::Injector);
 
 sub scheme { 'file' }
 
-sub arg_to_filename { $_[1] }
+sub url_to_file { pop->path }
 
 1;
