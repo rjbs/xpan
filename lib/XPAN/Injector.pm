@@ -12,7 +12,7 @@ requires qw(scheme url_to_file);
 # requires 'archiver' too, but attributes don't fulfill 'requires'
 
 sub inject {
-  my ($self, $url) = @_;
+  my ($self, $url, $opt) = @_;
   
   $url = URI->new("$url") unless blessed($url) && $url->isa('URI');
   # a blanket croak is wrong here; some injectors might handle multiple schemes
@@ -20,13 +20,14 @@ sub inject {
 #    Carp::croak "$url does not match $self scheme " . $self->scheme;
 #  }
 
-  my ($source, $arg)  = $self->prepare($url);
+  my ($source, $arg)  = $self->prepare($url, $opt);
 
   return $self->archiver->inject_one($source, $arg);
 }
 
 sub prepare {
-  my ($self, $url) = @_;
+  my ($self, $url, $opt) = @_;
+  $opt ||= {};
   my $filename = $self->url_to_file($url);
   return (
     $filename,
@@ -35,6 +36,7 @@ sub prepare {
       file      => Path::Class::file($filename)->basename,
       origin    => $url,
       authority => $self->url_to_authority($url),
+      %{ $opt->{extra} || {} },
     },
   )
 }
