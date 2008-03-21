@@ -14,7 +14,7 @@ requires qw(scheme url_to_file);
 sub inject {
   my ($self, $url, $opt) = @_;
   
-  $url = URI->new("$url") unless blessed($url) && $url->isa('URI');
+  blessed($url) or $url = URI->new($url);
   # a blanket croak is wrong here; some injectors might handle multiple schemes
 #  unless ($url->scheme eq $self->scheme) {
 #    Carp::croak "$url does not match $self scheme " . $self->scheme;
