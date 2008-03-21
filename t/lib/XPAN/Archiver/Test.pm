@@ -49,9 +49,12 @@ sub contains_dist_ok {
   Test::More::ok(
     $dist &&
     $dist->name eq $name &&
-    @_ > 2 ? ($dist->version eq $version) : 1,
+    (@_ > 2 ? ($dist->version eq $version) : 1) &&
+    $dist->authority &&
+    $dist->origin,
     $description,
   );
+  return $dist;
 }
 
 1;

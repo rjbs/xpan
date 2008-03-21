@@ -70,3 +70,10 @@ is_deeply(
   },
   "arg_to_filename by distname without version",
 );
+
+$archiver->auto_inject('cpan:///Package-Generator');
+my $dist = $archiver->contains_dist_ok('Package-Generator', '0.102');
+is($dist->authority, 'cpan:RJBS', "correct authority");
+is($dist->origin, 'cpan://RJBS/Package-Generator-0.102.tar.gz',
+  "correct origin");
+  
