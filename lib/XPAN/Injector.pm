@@ -32,9 +32,18 @@ sub prepare {
     $filename,
     {
       %{ $self->analyze($filename) },
-      file => Path::Class::file($filename)->basename,
+      file      => Path::Class::file($filename)->basename,
+      origin    => $url,
+      authority => $self->url_to_authority($url),
     },
   )
+}
+
+sub url_to_authority {
+  my ($self, $url) = @_;
+  require Sys::Hostname::Long;
+  my $user = getpwuid($<);
+  return sprintf 'local:%s@%s', $user, Sys::Hostname::Long::hostname_long();
 }
 
 sub analyze {
