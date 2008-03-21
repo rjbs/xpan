@@ -6,12 +6,12 @@ use lib 't/lib';
 use XPAN::Archiver::Test;
 
 my $archiver = XPAN::Archiver::Test->new;
-my $i = $archiver->injector(-CPAN);
+my $i = $archiver->injector_for('cpan');
 my $a = $archiver->analyzer;
 my $d;
 
 is_deeply(
-  $d = $a->analyze($i->arg_to_filename('Package-Generator-0.02')),
+  $d = $a->analyze($i->url_to_file('cpan:///Package-Generator-0.02')),
   {
     name    => 'Package-Generator',
     version => '0.02',
@@ -39,7 +39,7 @@ is_deeply(
 );
 
 is_deeply(
-  $d = $a->analyze($i->arg_to_filename('Package-Generator')),
+  $d = $a->analyze($i->url_to_file('cpan:///Package-Generator')),
   {
     name    => 'Package-Generator',
     version => '0.102',
