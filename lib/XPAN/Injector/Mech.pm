@@ -4,7 +4,9 @@ use warnings;
 package XPAN::Injector::Mech;
 
 use Moose;
-extends 'XPAN::Injector';
+with qw(XPAN::Injector);
+
+sub scheme { 'http' }
 
 has mech => (
   is => 'ro',
@@ -23,10 +25,11 @@ use File::Temp ();
 use File::Basename ();
 use WWW::Mechanize;
 
-sub arg_to_filename {
-  my ($self, $arg) = @_;
+sub url_to_file {
+  my ($self, $url) = @_;
+  blessed($url) or $url = URI->new("$url");
 
-  my $link = $self->scrape($arg);
+  my $link = $self->scrape($url);
 
   my $dir = File::Temp::tempdir(CLEANUP => 1);
   $self->mech->get($link);
