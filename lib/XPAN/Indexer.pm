@@ -3,7 +3,8 @@ use warnings;
 
 package XPAN::Indexer;
 
-use base qw(XPAN::Object::HasArchiver);
+use Moose;
+with qw(XPAN::Object::HasArchiver);
 
 use Carp ();
 use CPAN::Checksums ();
