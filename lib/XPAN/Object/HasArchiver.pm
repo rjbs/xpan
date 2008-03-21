@@ -3,8 +3,7 @@ use warnings;
 
 package XPAN::Object::HasArchiver;
 
-use Moose;
-extends 'XPAN::Object';
+use Moose::Role;
 
 has archiver => (
   is       => 'ro',
