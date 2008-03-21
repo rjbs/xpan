@@ -3,30 +3,43 @@ use warnings;
 
 package XPAN::Injector;
 
-use base qw(XPAN::Object::HasArchiver);
+use Moose::Role;
 
-use Scalar::Util ();
 use Carp ();
+use URI;
 
-sub arg_to_filename {
-  my ($self, $arg) = @_;
-  Carp::croak "$self must implement arg_to_filename ($arg)";
-}
+requires qw(scheme url_to_file);
+# requires 'archiver' too, but attributes don't fulfill 'requires'
 
 sub inject {
-  my $self = shift;
-  #warn "inject: $self @_\n";
-  for my $arg (@_) {
-    #warn "$self => $arg\n";
-    eval { 
-      $self->archiver->dist_from_file(
-        $self->arg_to_filename($arg)
-      )->save;
-    };
-    if ($@) {
-      warn "error processing '$arg': $@";
-    }
-  }
+  my ($self, $url) = @_;
+  
+  $url = URI->new("$url") unless blessed($url) && $url->isa('URI');
+  # a blanket croak is wrong here; some injectors might handle multiple schemes
+#  unless ($url->scheme eq $self->scheme) {
+#    Carp::croak "$url does not match $self scheme " . $self->scheme;
+#  }
+
+  my ($source, $arg)  = $self->prepare($url);
+
+  return $self->archiver->inject_one($source, $arg);
+}
+
+sub prepare {
+  my ($self, $url) = @_;
+  my $filename = $self->url_to_file($url);
+  return (
+    $filename,
+    {
+      %{ $self->analyze($filename) },
+      file => Path::Class::file($filename)->basename,
+    },
+  )
+}
+
+sub analyze {
+  my ($self, $filename) = @_;
+  return $self->archiver->analyzer->analyze($filename);
 }
 
 1;
