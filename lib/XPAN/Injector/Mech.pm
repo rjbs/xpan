@@ -4,7 +4,7 @@ use warnings;
 package XPAN::Injector::Mech;
 
 use Moose;
-with qw(XPAN::Injector);
+with qw(XPAN::Object::HasArchiver XPAN::Injector);
 
 sub scheme { 'http' }
 
