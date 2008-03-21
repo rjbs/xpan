@@ -37,7 +37,7 @@ sub test_distribution_files {
 
 sub inject_test_distributions {
   my $self = shift;
-  $self->inject(-File => [ $self->test_distribution_files ]);
+  $self->auto_inject(map { "file://$_" } $self->test_distribution_files);
 }
 
 sub contains_dist_ok {
