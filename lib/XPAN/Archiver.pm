@@ -163,7 +163,7 @@ sub auto_inject {
   $self->do_transaction(sub {
     for (@args) {
       my ($url, $handler);
-      if (blessed($_) && $_->isa('URI')) {
+      if (blessed($_)) {
         $url = $_;
       } else {
         if (s/^(.+?):://) {
