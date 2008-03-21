@@ -3,18 +3,19 @@ use warnings;
 
 package XPAN::Injector::SVN;
 
-use base qw(XPAN::Injector);
+use Moose;
+with qw(XPAN::Object::HasArchiver XPAN::Injector);
 use File::Temp ();
 use File::pushd;
 
 sub scheme { 'svn' }
 
-sub arg_to_filename {
-  my ($self, $arg) = @_;
+sub url_to_file {
+  my ($self, $url) = @_;
 
   my $export_dir = File::Temp::tempdir(CLEANUP => 1);
 
-  system("svn export --force $arg $export_dir >/dev/null")
+  system("svn export --force $url $export_dir >/dev/null")
     and die "svn export failed: $?";
 
   my $dist;
@@ -23,11 +24,11 @@ sub arg_to_filename {
     my $builder = 
       -e 'Build.PL'    ? '_build' :
       -e 'Makefile.PL' ? '_make' :
-      die "Can't find either Build.PL or Makefile.PL in $export_dir from $arg";
+      die "Can't find either Build.PL or Makefile.PL in $export_dir from $url";
 
     my $dist_dir = $self->$builder;
     my ($suffix) = grep { -e "$dist_dir$_" } qw(.tar.gz .tgz .zip)
-      or die "Can't find dist in $export_dir from $arg ($dist_dir)";
+      or die "Can't find dist in $export_dir from $url ($dist_dir)";
     $dist = "$dist_dir$suffix";
   }
 
