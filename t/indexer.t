@@ -15,6 +15,7 @@ my $cpan = CPAN::SQLite->new(
   CPAN   => $indexer->path,
   db_dir => $indexer->path,
 );
+
 $cpan->index(setup => 1);
 
 $indexer->each_distribution(sub {
