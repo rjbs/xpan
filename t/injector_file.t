@@ -8,11 +8,12 @@ use Module::Faker::Dist;
 
 my $archiver = XPAN::Archiver::Test->new(inject_tests => 0);
 
-$archiver->inject(-File => [
+$archiver->auto_inject(
+  'file://' . 
   Module::Faker::Dist
     ->from_file('t/dist/Scan-Test-0.10.yaml')
     ->make_archive,
-]);
+);
 
 my $dists = $archiver->dist->manager->get_objects;
   

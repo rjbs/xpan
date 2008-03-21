@@ -34,5 +34,5 @@ my $dist_dir = $dist->make_dist_dir({ dir => $tmp });
 system(<<"") && exit $?;
 svn import -m test $dist_dir file://$repo/$dist_name >/dev/null
 
-$arch->inject(-SVN => [ "file://$repo/$dist_name" ]);
+$arch->auto_inject("svn::file://$repo/$dist_name");
 $arch->contains_dist_ok($dist_name);
