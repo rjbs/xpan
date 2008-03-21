@@ -175,7 +175,7 @@ sub auto_inject {
 
       my $injector = $self->injector_for($handler);
 
-      warn "injecting: $injector => $url\n";
+      #warn "injecting: $injector => $url\n";
       $injector->inject($url);
     }
   });
