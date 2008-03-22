@@ -101,6 +101,18 @@ has path => (
   required => 1,
 );
 
+has tmp => (
+  is => 'ro',
+  isa => 'Path::Class::Dir',
+  lazy => 1,
+  default => sub {
+    my ($self) = @_;
+    my $tmp = $self->path->subdir('tmp');
+    $tmp->mkpath;
+    return $tmp;
+  },
+);
+
 has db => (
   isa => 'XPAN::DB',
   is => 'ro',
