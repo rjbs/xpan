@@ -5,22 +5,27 @@ use Test::More 'no_plan';
 use lib 't/lib';
 use XPAN::Archiver::Test;
 
-my $archiver = XPAN::Archiver::Test->new;
+my $archiver = XPAN::Archiver::Test->new(inject_tests => 0);
 my $i = $archiver->injector_for('cpan');
 my $a = $archiver->analyzer;
 my $d;
 
 is_deeply(
-  $d = $a->analyze($i->url_to_file('cpan:///Package-Generator-0.02')),
+  $d = $a->analyze($i->url_to_file('cpan:///Package-Generator-0.102')),
   {
     name    => 'Package-Generator',
-    version => '0.02',
+    version => '0.102',
     modules => [
       {
         name => 'Package::Generator',
         file => 'lib/Package/Generator.pm',
-        version => '0.02',
+        version => '0.102',
       },
+      {
+        name => 'Package::Reaper',
+        file => 'lib/Package/Reaper.pm',
+        version => '0.102',
+      }
     ],
     dependencies => [
       {
@@ -35,7 +40,7 @@ is_deeply(
       },
     ],
   },
-  "arg_to_filename by distname and version",
+  "url_to_file by distname and version",
 );
 
 is_deeply(
@@ -68,7 +73,7 @@ is_deeply(
       },
     ],
   },
-  "arg_to_filename by distname without version",
+  "url_to_file by distname without version",
 );
 
 $archiver->auto_inject('cpan:///Package-Generator');
