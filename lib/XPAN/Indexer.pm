@@ -4,7 +4,7 @@ use warnings;
 package XPAN::Indexer;
 
 use Moose;
-with qw(XPAN::Object::HasArchiver);
+with qw(XPAN::Helper);
 
 use Carp ();
 use CPAN::Checksums ();

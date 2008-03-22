@@ -5,7 +5,7 @@ package XPAN::Injector::File;
 
 use Moose;
 
-with qw(XPAN::Object::HasArchiver XPAN::Injector);
+with qw(XPAN::Helper XPAN::Injector);
 
 sub scheme { 'file' }
 

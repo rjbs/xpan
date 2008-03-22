@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-package XPAN::Object::HasArchiver;
+package XPAN::Helper;
 
 use Moose::Role;
 

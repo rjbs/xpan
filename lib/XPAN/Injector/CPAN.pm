@@ -4,7 +4,7 @@ use warnings;
 package XPAN::Injector::CPAN;
 
 use Moose;
-with qw(XPAN::Object::HasArchiver XPAN::Injector);
+with qw(XPAN::Helper XPAN::Injector);
 
 use CPAN::SQLite;
 use LWP::Simple ();

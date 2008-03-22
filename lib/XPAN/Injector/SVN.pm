@@ -4,7 +4,7 @@ use warnings;
 package XPAN::Injector::SVN;
 
 use Moose;
-with qw(XPAN::Object::HasArchiver XPAN::Injector);
+with qw(XPAN::Helper XPAN::Injector);
 use File::Temp ();
 use File::pushd;
 
