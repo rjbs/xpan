@@ -31,39 +31,95 @@ has cpan => (
 
 sub scheme { 'cpan' }
 
-sub _qualify {
+sub _validate {
   my ($self, $url) = @_;
-  blessed($url) or $_[1] = $url = URI->new($url);
-  unless ($url->cpanid && $url->version
-    && $url->path =~ /\Q@{[ $url->extension ]}\E$/) {
-    $self->cpan->query(
-      mode => 'dist',
-      name => $url->dist,
-    );
-    my $result = $self->cpan->{results};
-    unless ($result) {
-      Carp::croak "no cpanid given in $url and no dist found on cpan";
-    }
-    if ($url->version and $url->version ne $result->{dist_vers}) {
-      Carp::croak "version from $url does not match cpan ($result->{dist_vers})";
-    }
-    $url->path('/' . $result->{dist_file});
-    $url->authority($result->{cpanid});
+  blessed($url) or $url = URI->new($url);
+  unless ($url->isa('URI::cpan')) {
+    Carp::croak "unknown CPAN URL scheme: $url (not isa URI::cpan)";
   }
   return $url;
 }
 
+sub _dist {
+  my ($self, $url) = @_;
+  $url = $self->_validate($url);
+  if ($url->type eq 'dist') {
+    return $url if $url->version;
+    $self->cpan->query(
+      mode => 'dist',
+      name => $url->name,
+    );
+    $url->version($self->cpan->{results}->{dist_vers});
+    return $url;
+  }
+
+  if ($url->type eq 'author') {
+    my $info = CPAN::DistnameInfo->new($url->full_path);
+    unless ($info->dist) {
+      Carp::croak "author url '$url' does not refer to a dist";
+    }
+    return URI->new(sprintf(
+      'cpan://dist/%s/%s',
+      $info->dist,
+      $info->version,
+    ));
+  }
+
+  if ($url->type eq 'package') {
+    $self->cpan->query(
+      mode => 'module',
+      name => $url->name,
+    );
+    my $result = $self->cpan->{results};
+    if ($url->version and $url->version ne $result->{mod_vers}) {
+      Carp::croak "version from $url does not match cpan ($result->{mod_vers})";
+    }
+    return URI->new(sprintf(
+      'cpan://dist/%s/%s',
+      $result->{dist_name},
+      $result->{dist_vers},
+    ));
+  }
+
+  Carp::croak "unknown CPAN url: $url";
+}
+
+sub _author {
+  my ($self, $url) = @_;
+  $url = $self->_validate($url);
+  return $url if $url->type eq 'author';
+
+  $url = $self->_dist($url);
+  $self->cpan->query(
+    mode => 'dist',
+    name => $url->name,
+  );
+  my $result = $self->cpan->{results};
+  if ($url->version and $url->version ne $result->{dist_vers}) {
+    Carp::croak "version from $url does not match cpan ($result->{dist_vers})";
+  }
+  return URI->new(sprintf(
+    'cpan://%s/%s', $result->{cpanid}, $result->{dist_file},
+  ));
+}
+
 before prepare => sub {
   my ($self, $url, $opt) = @_;
-  $self->_qualify($url);
+  $_[1] = $self->_author($url);
 };
 
 sub url_to_file {
   my ($self, $url) = @_;
-  $self->_qualify($url);
+  $url = $self->_author($url);
   my $tmp = File::Temp::tempdir(CLEANUP => 1);
-  my $file = "$tmp/" . $url->info->filename;
-  return $url->mirror_from($self->config->get('cpan_mirror'), $file);
+  my $file = "$tmp/" . $url->filename;
+  return $self->_mirror_from(
+    URI->new_abs(
+      $url->full_path,
+      $self->config->get('cpan_mirror'),
+    ),
+    $file,
+  );
 }
 
 sub url_to_authority {
@@ -71,53 +127,8 @@ sub url_to_authority {
   return 'cpan:' . $url->cpanid;
 }
 
-package URI::cpan;
-
-use MooseX::InsideOut;
-extends 'URI::_foreign';
-
-use CPAN::DistnameInfo;
-
-has _info => (
-  is => 'ro',
-  lazy => 1,
-  isa => 'HashRef',
-  default => sub { {} },
-);
-
-sub info {
-  my ($self) = @_;
-  my $key = "$self";
-  return $self->_info->{$key} if $self->_info->{$key};
-
-  # recalculate if the url stringification changes
-  my (undef, $name) = split m{/}, $self->path, 2;
-  if ($self->authority) {
-    my $cpanid = $self->authority;
-    $name = sprintf(
-      "authors/id/%s/%s/%s/%s",
-      substr($cpanid, 0, 1),
-      substr($cpanid, 0, 2),
-      $cpanid,
-      $name,
-    );
-  }
-  $name .= '.tar.gz' unless $name =~ /(\.tar\.gz|\.zip)$/;
-  my $info = CPAN::DistnameInfo->new($name);
-  %{ $self->_info } = ($key => $info);
-  #use Data::Dumper; warn Dumper($info);
-  return $info;
-}
-
-sub dist      { shift->info->dist      }
-sub version   { shift->info->version   }
-sub distvname { shift->info->distvname }
-sub cpanid    { shift->info->cpanid    }
-sub extension { shift->info->extension }
-
-sub mirror_from {
-  my ($self, $mirror, $file) = @_;
-  my $url = URI->new_abs($self->info->pathname, $mirror);
+sub _mirror_from {
+  my ($self, $url, $file) = @_;
   my $rc = LWP::Simple::mirror($url, $file);
   unless (HTTP::Status::is_success($rc)) {
     Carp::croak "could not mirror $url -> $file: got $rc";
