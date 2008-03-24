@@ -14,6 +14,7 @@ requires 'Moose'                     => 0;
 requires 'Rose::DB::Object'          => 0;
 requires 'WWW::Mechanize'            => 0;
 requires 'Module::Pluggable::Object' => 0;
+requires 'Config::INI::Reader'       => 0;
 
 install_script 'script/xpan';
 
