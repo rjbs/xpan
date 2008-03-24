@@ -1,0 +1,23 @@
+== A brief discussion of XPAN URLs ==
+
+Consider the following argument as an injection for XPAN:
+
+  file:///tmp/Foo-Bar-1.23.tar.gz
+
+XPAN will look first for an explicit injector (^\w+::).  Since none is
+given, it will fall back to the default injector for the url, which is
+file:///, mapped to XPAN::Injector::File.  This argument would be identical:
+
+  File::file:///tmp/Foo-Bar-1.23.tar.gz
+
+Explicit injectors containing uppercase letters are reserved for XPAN internal
+use; all the default injectors have uppercase letters (File, SVN, CPAN, ...).
+
+There may also be user-defined injectors; for example, CPAN with a particular
+configuration.  These must be named in all-lowercase, but are otherwise
+identical to the default injectors:
+
+  myminicpan::cpan://dist/Foo-Bar/1.23
+
+
+
