@@ -63,6 +63,7 @@ has injector_class_map => (
         next;
       }
       $map{$i_class->scheme} ||= $i_class;
+      $map{$i_class->name}   ||= $i_class;
     }
     return \%map; 
   },

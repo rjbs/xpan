@@ -11,6 +11,12 @@ use URI;
 requires qw(scheme url_to_file);
 # requires 'archiver' too, but attributes don't fulfill 'requires'
 
+sub name {
+  my ($self) = @_;
+  my $name = blessed($self) || $self;
+  return +(split /::/, $name)[-1];
+}
+
 sub inject {
   my ($self, $url, $opt) = @_;
   
