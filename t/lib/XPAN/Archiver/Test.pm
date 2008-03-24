@@ -6,6 +6,8 @@ package XPAN::Archiver::Test;
 use Moose;
 extends 'XPAN::Archiver';
 
+use XPAN::Context::Test;
+
 has inject_tests => (
   is => 'ro',
   isa => 'Bool',
@@ -14,6 +16,10 @@ has inject_tests => (
 
 has '+path' => (
   default => sub { File::Temp::tempdir(CLEANUP => 1) },
+);
+
+has '+context' => (
+  default => sub { XPAN::Context::Test->new }
 );
 
 use File::Temp ();
