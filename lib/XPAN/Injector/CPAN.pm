@@ -63,7 +63,7 @@ sub url_to_file {
   $self->_qualify($url);
   my $tmp = File::Temp::tempdir(CLEANUP => 1);
   my $file = "$tmp/" . $url->info->filename;
-  return $url->mirror($file);
+  return $url->mirror_from($self->config->get('cpan_mirror'), $file);
 }
 
 sub url_to_authority {
@@ -115,10 +115,9 @@ sub distvname { shift->info->distvname }
 sub cpanid    { shift->info->cpanid    }
 sub extension { shift->info->extension }
 
-sub mirror {
-  my ($self, $file, $mirror) = @_;
-  $mirror ||= 'http://www.cpan.org/';
-  my $url = $mirror . $self->info->pathname;
+sub mirror_from {
+  my ($self, $mirror, $file) = @_;
+  my $url = URI->new_abs($self->info->pathname, $mirror);
   my $rc = LWP::Simple::mirror($url, $file);
   unless (HTTP::Status::is_success($rc)) {
     Carp::croak "could not mirror $url -> $file: got $rc";
