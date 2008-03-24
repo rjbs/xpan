@@ -28,6 +28,7 @@ sub run {
   lib->import("t/lib");
   require XPAN::Archiver::Test;
   my $arch = XPAN::Archiver::Test->new(path => $dir);
+  $arch->log->info("test xpan built in $dir");
 }
 
 1;
