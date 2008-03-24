@@ -22,6 +22,10 @@ has '+context' => (
   default => sub { XPAN::Context::Test->new }
 );
 
+has '+config' => (
+  default => sub { XPAN::Config->read_file('t/xpan.ini') },
+);
+
 use File::Temp ();
 use Module::Faker ();
 use Test::More ();
