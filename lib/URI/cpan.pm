@@ -26,14 +26,28 @@ sub _init {
   }
 }
 
+sub type { 'generic' }
+
 package URI::cpan::_namever;
 use base qw(URI::cpan);
 
 sub NAME    () { 1 }
 sub VERSION () { 2 }
 
-sub name    { (split m{/}, shift->path)[NAME] }
-sub version { (split m{/}, shift->path)[VERSION] }
+sub name {
+  my ($self, $new) = @_;
+  return +(split m{/}, $self->path)[NAME] if @_ == 1;
+  my $path = join '/', '', $new, grep { defined } $self->version;
+  $self->path($path);
+  return $self;
+}
+
+sub version {
+  my ($self, $new) = @_;
+  return +(split m{/}, $self->path)[VERSION] if @_ == 1;
+  $self->path(join '/', '', $self->name, $new);
+  return $self;
+}
 
 sub authority {
   my $self = shift;
@@ -64,6 +78,9 @@ sub sep { ' ' }
 
 package URI::cpan::author;
 use base qw(URI::cpan);
+use File::Basename ();
+
+sub type { 'author' }
 
 sub authority { 
   my $self = shift;
@@ -74,6 +91,11 @@ sub authority {
   return $self->SUPER::authority($new);
 }
 BEGIN { *cpanid = \&authority }
+
+sub filename {
+  my ($self) = @_;
+  return File::Basename::basename($self->path);
+}
 
 sub full_path {
   my ($self) = @_;
