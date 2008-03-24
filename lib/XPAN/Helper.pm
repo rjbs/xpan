@@ -10,7 +10,7 @@ has archiver => (
   required => 1,
   isa      => 'XPAN::Archiver',
   weak_ref => 1,
-  handles => [qw(context)],
+  handles => [qw(context log)],
 );
 
 sub config {
