@@ -74,10 +74,11 @@ sub _dist {
     if ($url->version and $url->version ne $result->{mod_vers}) {
       Carp::croak "version from $url does not match cpan ($result->{mod_vers})";
     }
+    my $info = CPAN::DistnameInfo->new($result->{dist_file});
     return URI->new(sprintf(
       'cpan://dist/%s/%s',
-      $result->{dist_name},
-      $result->{dist_vers},
+      $info->dist,
+      $info->version,
     ));
   }
 
