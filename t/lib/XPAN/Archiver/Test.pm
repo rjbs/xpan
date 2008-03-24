@@ -29,10 +29,15 @@ has '+config' => (
 use File::Temp ();
 use Module::Faker ();
 use Test::More ();
+use File::Copy ();
 
 sub BUILD {
   my ($self) = @_;
   $self->inject_test_distributions if $self->inject_tests;
+  File::Copy::copy(
+    't/xpan.ini',
+    $self->path->file('xpan.ini'),
+  );
 }
 
 sub test_distribution_files {
