@@ -92,6 +92,14 @@ has analyzer_class => (
   default => 'XPAN::Analyzer',
 );
 
+# context
+
+has context => (
+  is => 'ro',
+  isa => 'XPAN::Context',
+  required => 1,
+);
+
 # other attributes
 
 has path => (
