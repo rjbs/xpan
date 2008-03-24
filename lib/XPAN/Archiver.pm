@@ -201,7 +201,7 @@ sub auto_inject {
       if (blessed($_)) {
         $url = $_;
       } else {
-        if (s/^(.+?):://) {
+        if (s/^(\w+):://) {
           $handler = $1;
         }
         $url = URI->new("$_");
