@@ -12,7 +12,7 @@ use XPAN::Archiver;
 
 sub global_opt_spec {
   return (
-    [ 'path|p=s', 'path to archive', { required => 1 } ],
+#    [ 'path|p=s', 'path to archive', { required => 1 } ],
   );
 }
 
