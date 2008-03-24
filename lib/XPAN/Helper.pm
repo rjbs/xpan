@@ -10,6 +10,13 @@ has archiver => (
   required => 1,
   isa      => 'XPAN::Archiver',
   weak_ref => 1,
+  handles => [qw(context)],
 );
+
+sub config {
+  my ($self) = @_;
+  my $key = blessed($self) || $self;
+  return $self->archiver->config->get($key);
+}
 
 1;
