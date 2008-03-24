@@ -11,7 +11,7 @@ use Log::Dispatch;
 use Log::Dispatch::Screen;
 use XPAN::User;
 
-has logger => (
+has log => (
   is => 'ro',
   isa => 'Log::Dispatch',
   lazy => 1,
@@ -22,15 +22,15 @@ has logger => (
     return $d;
   },
   handles => [
+      #log log_and_die log_and_croak
     qw(
-      log log_and_die log_and_croak
       debug info notice warning error critical alert emergency
       err crit emerg
     )
   ],
 );
 
-has log_objects => (
+has loggers => (
   is => 'ro',
   isa => 'ArrayRef',
   lazy => 1,
@@ -39,7 +39,7 @@ has log_objects => (
     return [
       Log::Dispatch::Screen->new(
         name => 'screen', min_level => 'debug',
-        callbacks => sub { pop->{message} . "\n" },
+        callbacks => sub { my %p = @_; "$p{message}\n" },
       )
     ];
   },
