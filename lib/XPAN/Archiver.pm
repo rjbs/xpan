@@ -7,6 +7,7 @@ use Carp ();
 use Path::Class ();
 use File::Copy ();
 use XPAN::DB;
+use XPAN::Config;
 use CPAN::DistnameInfo;
 use URI;
 
@@ -98,6 +99,18 @@ has context => (
   is => 'ro',
   isa => 'XPAN::Context',
   required => 1,
+);
+
+# config
+
+has config => (
+  is => 'ro',
+  isa => 'XPAN::Config',
+  lazy => 1,
+  default => sub {
+    my ($self) = @_;
+    XPAN::Config->read_file($self->path->file('xpan.ini'));
+  },
 );
 
 # other attributes
