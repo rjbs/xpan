@@ -99,6 +99,7 @@ has context => (
   is => 'ro',
   isa => 'XPAN::Context',
   required => 1,
+  handles => [qw(log)],
 );
 
 # config
