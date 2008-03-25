@@ -3,14 +3,15 @@ use warnings;
 
 package XPAN::Analyzer;
 
+use Moose;
+with 'XPAN::Helper';
+
 use CPAN::DistnameInfo;
 use File::pushd ();
 use Path::Class ();
 use ExtUtils::Manifest ();
 use Cwd ();
 require ExtUtils::MM;
-
-sub new { bless {} => shift }
 
 sub parse_meta {
   my ($self, $yaml) = @_;
@@ -24,7 +25,7 @@ sub parse_meta {
   for my $module (keys %{ $meta->{requires} || {} }) {
     push @{ $dist{dependencies} ||= [] }, {
       name => $module,
-      version => $meta->{requires}{$module},
+      version => $meta->{requires}{$module} || 0,
       source => 'META.yml',
     };
   }
@@ -154,9 +155,8 @@ sub scan_for_modules {
         next if not defined $hash;
         foreach (keys %$hash) {
           $pkg{$_} = $hash->{$_}
-            if not defined $pkg{$_}{version}
-            or (defined $hash->{$_}{version}
-            and $pkg{$_}{version} < $hash->{$_}{version});
+            if not defined $pkg{$_}{version} or $pkg{$_}{version} eq 'undef'
+            or (defined $hash->{$_}{version} and $pkg{$_}{version} < $hash->{$_}{version});
         }
       }
     }
@@ -183,7 +183,11 @@ sub analyze {
   my $d = CPAN::DistnameInfo->new($filename);
 
   require Archive::Tar;
-  my $tar = Archive::Tar->new;
+  require Archive::Zip;
+  my $type = $filename =~ /\.zip$/ ? 'Zip' : 'Tar';
+  my $tar = "XPAN::Analyzer::Archive::$type"->new(
+    archive => "Archive::$type"->new,
+  );
   $tar->read($filename);
 
   my $base = $d->distvname;
@@ -195,10 +199,17 @@ sub analyze {
   
   {
     local $Archive::Tar::WARN = 0;
-    if ($tar->contains_file("$base/META.yml")) {
-      %dist = (%dist, $self->parse_meta(
-        $tar->get_content("$base/META.yml")
-      ));
+    if ($tar->contains("$base/META.yml")) {
+      my %meta = eval { 
+        $self->parse_meta($tar->content("$base/META.yml"));
+      };
+      if (my $e = $@) {
+        $self->log->warning([ "could not parse $base/META.yml: $e" ]);
+      } elsif (not %meta) {
+        $self->log->warning([ "$base/META.yaml returned undef" ]);
+      }
+      %dist = (%dist, %meta);
+      #use Data::Dumper; warn Dumper(\%meta, \%dist);
     }
   }
 
@@ -208,6 +219,25 @@ sub analyze {
   return \%dist;
 }
 
+package XPAN::Analyzer::Archive;
 
+use Moose;
+has archive => (is => 'ro', required => 1, handles => [qw(read)]);
+
+package XPAN::Analyzer::Archive::Zip;
+use Moose;
+extends 'XPAN::Analyzer::Archive';
+
+sub content { shift->archive->contents(shift) }
+sub extract { shift->archive->extractTree }
+sub contains { shift->archive->memberNamed(shift) ? 1 : 0}
+
+package XPAN::Analyzer::Archive::Tar;
+use Moose;
+extends 'XPAN::Analyzer::Archive';
+
+sub content { shift->archive->get_content(shift) }
+sub extract { shift->archive->extract }
+sub contains { shift->archive->contains_file(shift) }
 
 1;
