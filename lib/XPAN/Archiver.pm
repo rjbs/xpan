@@ -9,7 +9,7 @@ use File::Copy ();
 use XPAN::DB;
 use XPAN::Config;
 use XPAN::Context;
-use XPAN::Util qw(iter);
+use XPAN::Util -all;
 use CPAN::DistnameInfo;
 use URI;
 
@@ -235,39 +235,24 @@ sub auto_inject_one {
 
 sub auto_inject_iter_no_deps {
   my $self = shift;
-  my @iter;
-  for (@_) {
-    my @url;
-    if (blessed($_) && $_->isa('XPAN::Util::Iterator')) {
-      push @iter, $_;
-    } else {
-      push @url, $_;
-      push @iter, iter { shift @url };
-    }
-  }
-  return iter { LOOP: {
-    my $iter = $iter[0] or return;
-    my $arg  = $iter->next or shift @iter, redo;
-    return $self->auto_inject_one($arg);
-  } }
+  return iter_map { $self->auto_inject_one($_) } iter_auto(@_);
 }
 
 # follow dependencies 
 sub auto_inject_iter_follow_deps {
   my $self = shift;
-  my @iter = $self->auto_inject_iter_warn_deps(@_);
-  return iter { LOOP: {
-    my $iter = $iter[0] or return;
-    my $res = $iter->next or shift @iter, redo;
+  my $iter = $self->auto_inject_iter_warn_deps(@_);
+  return iter_map {
+    my $res = $_;
     if (exists $res->warning->{unmet_deps}) {
       my @unmet = @{ $res->warning->{unmet_deps} };
       #use Data::Dumper; warn Dumper(\@unmet);
-      unshift @iter, $self->auto_inject_iter_follow_deps(
+      $iter->prepend($self->auto_inject_iter_follow_deps(
         map { $_->{url} } @unmet,
-      );
+      ));
     }
     return $res;
-  } };
+  } $iter;
 }
 
 # we never want to try to fill these dependencies
@@ -279,11 +264,10 @@ my %SKIP_DEP = (
 sub auto_inject_iter_warn_deps {
   my $self = shift;
 
-  my $iter = $self->auto_inject_iter_no_deps(@_);
   my $cpan = $self->injector_for('CPAN');
 
-  return iter {
-    my $res = $iter->next or return;
+  return iter_map {
+    my $res = $_;
     return $res if $res->isa('XPAN::Result::Success::Already')
       or ! $res->is_success;
     for my $dep (grep { ! $_->matches($self) } $res->dist->dependencies) {
@@ -294,7 +278,7 @@ sub auto_inject_iter_warn_deps {
         { dep => $dep, url => $dep_url };
     }
     return $res;
-  };
+  } $self->auto_inject_iter_no_deps(@_);
 }
 
 sub inject_one {
