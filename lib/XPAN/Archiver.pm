@@ -200,6 +200,19 @@ sub injector_for {
   };
 }
 
+sub auto_inject {
+  my $self = shift;
+  my $opt  = ref $_[-1] eq 'HASH' ? pop : {};
+  my $iter = $opt->{no_deps}
+    ? $self->auto_inject_iter_no_deps(@_)
+    : $self->auto_inject_iter_follow_deps(@_);
+  my @res;
+  while (my $res = $iter->next) {
+    push @res, $res;
+  }
+  return @res;
+}
+
 sub auto_inject_one {
   my ($self, $arg) = @_;
   my ($url, $i_name);
@@ -220,7 +233,7 @@ sub auto_inject_one {
   return $injector->inject($url);
 }
 
-sub auto_inject_iter_nodeps {
+sub auto_inject_iter_no_deps {
   my $self = shift;
   my @iter;
   for (@_) {
@@ -266,7 +279,7 @@ my %SKIP_DEP = (
 sub auto_inject_iter_warn_deps {
   my $self = shift;
 
-  my $iter = $self->auto_inject_iter_nodeps(@_);
+  my $iter = $self->auto_inject_iter_no_deps(@_);
   my $cpan = $self->injector_for('CPAN');
 
   return iter {
@@ -352,17 +365,15 @@ sub find_pinset {
 
 sub find_dist {
   my ($self, $arg) = @_;
-
+  my %p;
   if (ref $arg eq 'ARRAY') {
-    return $self->dist->new(
-      name    => $arg->[0],
-      version => $arg->[1],
-    )->load(speculative => 1);
+    $p{name}    = $arg->[0];
+    $p{version} = $arg->[1];
+  } elsif ($arg =~ /^\d+$/) {
+    %p = ( id => $arg );
   }
-
-  if ($arg =~ /^\d+$/) {
-    return $self->dist->new(id => $arg)->load(speculative => 1);
-  }
+  my $dist = $self->dist->new(%p);
+  return $dist->load(speculative => 1) && $dist;
 }
       
 1;
