@@ -8,6 +8,8 @@ use Path::Class ();
 use File::Copy ();
 use XPAN::DB;
 use XPAN::Config;
+use XPAN::Context;
+use XPAN::Util qw(iter);
 use CPAN::DistnameInfo;
 use URI;
 
@@ -82,10 +84,10 @@ has analyzer => (
   is => 'ro',
   lazy => 1,
   default => sub {
-    my $class = shift->analyzer_class;
-    eval "require $class";
-    die $@ if $@;
-    $class->new;
+    my ($self) = @_;
+    my $class = $self->analyzer_class;
+    eval "require $class; 1" or die $@;
+    $class->new(archiver => $self);
   },
 );
 
@@ -99,8 +101,12 @@ has analyzer_class => (
 has context => (
   is => 'ro',
   isa => 'XPAN::Context',
-  required => 1,
   handles => [qw(log)],
+  lazy => 1,
+  default => sub {
+    my ($self) = @_;
+    XPAN::Context->new;
+  },
 );
 
 # config
@@ -156,6 +162,9 @@ sub init_db {
   return $db;
 }
 
+# necessary for now in case someone uses XPAN::Dist, etc.
+sub BUILD { shift->db } 
+
 # DB accessors
 
 sub dist       { require XPAN::Dist;       'XPAN::Dist' }
@@ -191,30 +200,88 @@ sub injector_for {
   };
 }
 
-# should this return something useful?
-sub auto_inject {
-  my $self = shift;
-  my @args = @_;
-  $self->do_transaction(sub {
-    for (@args) {
-      my ($url, $handler);
-      if (blessed($_)) {
-        $url = $_;
-      } else {
-        if (s/^(\w+):://) {
-          $handler = $1;
-        }
-        $url = URI->new("$_");
-      }
-      $handler ||= $url->scheme;
-
-      my $injector = $self->injector_for($handler);
-
-      #warn "injecting: $injector => $url\n";
-      $injector->inject($url);
+sub auto_inject_one {
+  my ($self, $arg) = @_;
+  my ($url, $i_name);
+  if (blessed $arg) {
+    $url = $arg;
+  } else {
+    if ($arg =~ s/^(\w+):://) {
+      $i_name = $1;
     }
-  });
-  die $self->db->error if $self->db->error;
+    $url = URI->new("$arg");
+  }
+  $i_name ||= $url->scheme;
+
+  my $injector = $self->injector_for($i_name);
+  $i_name = $injector->name;
+
+  $self->log->debug([ "%6s: injecting: %s", $i_name, $url ]);
+  return $injector->inject($url);
+}
+
+sub auto_inject_iter_nodeps {
+  my $self = shift;
+  my @iter;
+  for (@_) {
+    my @url;
+    if (blessed($_) && $_->isa('XPAN::Util::Iterator')) {
+      push @iter, $_;
+    } else {
+      push @url, $_;
+      push @iter, iter { shift @url };
+    }
+  }
+  return iter { LOOP: {
+    my $iter = $iter[0] or return;
+    my $arg  = $iter->next or shift @iter, redo;
+    return $self->auto_inject_one($arg);
+  } }
+}
+
+# follow dependencies 
+sub auto_inject_iter_follow_deps {
+  my $self = shift;
+  my @iter = $self->auto_inject_iter_warn_deps(@_);
+  return iter { LOOP: {
+    my $iter = $iter[0] or return;
+    my $res = $iter->next or shift @iter, redo;
+    if (exists $res->warning->{unmet_deps}) {
+      my @unmet = @{ $res->warning->{unmet_deps} };
+      #use Data::Dumper; warn Dumper(\@unmet);
+      unshift @iter, $self->auto_inject_iter_follow_deps(
+        map { $_->{url} } @unmet,
+      );
+    }
+    return $res;
+  } };
+}
+
+# we never want to try to fill these dependencies
+my %SKIP_DEP = (
+  perl   => 1,
+  Config => 1,
+);
+
+sub auto_inject_iter_warn_deps {
+  my $self = shift;
+
+  my $iter = $self->auto_inject_iter_nodeps(@_);
+  my $cpan = $self->injector_for('CPAN');
+
+  return iter {
+    my $res = $iter->next or return;
+    return $res if $res->isa('XPAN::Result::Success::Already')
+      or ! $res->is_success;
+    for my $dep (grep { ! $_->matches($self) } $res->dist->dependencies) {
+      # XXX: dependency policy should be configurable
+      my $dep_url = $cpan->dist_url('cpan://package/' . $dep->name);
+      next if $SKIP_DEP{$dep_url->name};
+      push @{ $res->warning->{unmet_deps} ||= [] },
+        { dep => $dep, url => $dep_url };
+    }
+    return $res;
+  };
 }
 
 sub inject_one {
@@ -236,7 +303,7 @@ sub inject_one {
     $source,
     $dir->file($arg->{file}),
   );
-  $dist->save;
+  unless ($dist->load(speculative => 1)) { $dist->save }
   return $dist;
 }
 
@@ -285,45 +352,17 @@ sub find_pinset {
 
 sub find_dist {
   my ($self, $arg) = @_;
-  
-  if ($arg =~ /::/) {
-    my ($name, $version) = split /\s+/, $arg;
-    my $modules = $self->module->manager->get_objects(
-      query => [
-        name => $name,
-        $version ? (version => $version) : (),
-      ],
-      db => $self->db,
-      sort_by => 'version DESC',
-    );
 
-    unless (@$modules) {
-      Carp::confess "can't find_dist, no matching modules: $arg";
-    }
-
-    return $modules->[0]->dist;
+  if (ref $arg eq 'ARRAY') {
+    return $self->dist->new(
+      name    => $arg->[0],
+      version => $arg->[1],
+    )->load(speculative => 1);
   }
 
-  my $dinfo = CPAN::DistnameInfo->new("$arg.tar.gz");
-
-  unless ($dinfo) {
-    Carp::confess "can't parse argument as module or dist name: $arg";
+  if ($arg =~ /^\d+$/) {
+    return $self->dist->new(id => $arg)->load(speculative => 1);
   }
-
-  my $dists = $self->dist->manager->get_objects(
-    query => [
-      name => $dinfo->dist,
-      $dinfo->version ? (version => $dinfo->version) : (),
-    ],
-    db => $self->db,
-    sort_by => 'version DESC',
-  );
-
-  unless (@$dists) {
-    Carp::confess "can't find_dist, no matching dists: $arg";
-  }
-
-  return $dists->[0];
 }
       
 1;
