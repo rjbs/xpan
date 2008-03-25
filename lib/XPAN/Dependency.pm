@@ -42,7 +42,7 @@ __PACKAGE__->meta->setup(
 );
 __PACKAGE__->make_manager_class;
 
-use Sort::Versions ();
+use CPAN::Version;
 use Carp ();
 use Scalar::Util ();
 
@@ -62,6 +62,8 @@ sub matching_modules {
 
 sub matches {
   my ($self, $arg) = @_;
+
+  return 1 if $self->name eq 'perl'; # XXX hack
 
   my $module;
   die "argument to matches() must be a Pinset, Pin, Dist, or Module (not $arg)"
@@ -99,7 +101,7 @@ sub matches {
   }
   
   if ($arg->isa('XPAN::Module')) {
-    return Sort::Versions::versioncmp($arg->version, $self->version) >= 0;
+    return CPAN::Version->vcmp($arg->version || 0, $self->version) >= 0;
   } else {
     Carp::croak "unhandled argument to matches(): $arg";
   }
