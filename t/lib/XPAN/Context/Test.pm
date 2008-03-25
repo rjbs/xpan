@@ -6,8 +6,14 @@ package XPAN::Context::Test;
 use Moose;
 BEGIN { extends 'XPAN::Context' }
 
-has '+user' => (
-  default => sub { XPAN::User->new }
-);
+has '+loggers' => (
+  default => sub {
+    return [
+      Log::Dispatch::Screen->new(
+        name => 'screen', min_level => 'emerg',
+      )
+    ];
+  },
+); 
 
 1;
