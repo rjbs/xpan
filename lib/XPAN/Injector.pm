@@ -4,7 +4,7 @@ use warnings;
 package XPAN::Injector;
 
 use Moose::Role;
-
+with 'XPAN::ResultSource';
 use Carp ();
 use URI;
 
@@ -18,40 +18,48 @@ sub name {
 }
 
 sub inject {
-  my ($self, $url, $opt) = @_;
-  
+  my ($self, $url) = @_;
   blessed($url) or $url = URI->new($url);
-  # a blanket croak is wrong here; some injectors might handle multiple schemes
-#  unless ($url->scheme eq $self->scheme) {
-#    Carp::croak "$url does not match $self scheme " . $self->scheme;
-#  }
-
-  my ($source, $arg)  = $self->prepare($url, $opt);
-
-  return $self->archiver->inject_one($source, $arg);
+  my $dist = eval {
+    $url = $self->normalize($url);
+    my ($source, $arg)  = $self->prepare($url);
+    $self->archiver->inject_one($source, $arg);
+  };
+  if (my $e = XPAN::Result->caught) {
+    return $e;
+  } elsif ($@) { die $@ }
+  return $self->make_result('Success', dist => $dist);
 }
 
 sub prepare {
-  my ($self, $url, $opt) = @_;
-  $opt ||= {};
+  my ($self, $url) = @_;
   my $filename = $self->url_to_file($url);
+  my %p = %{ $self->analyze($filename) };
+  if ($p{name} and $p{version}) {
+    my $dist = $self->archiver->dist->new(
+      name    => $p{name},
+      version => $p{version}
+    )->load(speculative => 1);
+    if ($dist) {
+      $self->throw_result('Success::Already', dist => $dist, dist => $dist);
+    }
+  }
   return (
     $filename,
     {
-      %{ $self->analyze($filename) },
+      %p,
       file      => Path::Class::file($filename)->basename,
       origin    => $url,
       authority => $self->url_to_authority($url),
-      %{ $opt->{extra} || {} },
     },
   )
 }
 
+sub normalize { $_[1] }
+
 sub url_to_authority {
   my ($self, $url) = @_;
-  require Sys::Hostname::Long;
-  my $user = getpwuid($<);
-  return sprintf 'local:%s@%s', $user, Sys::Hostname::Long::hostname_long();
+  return $self->context->user->authority;
 }
 
 sub analyze {
