@@ -5,9 +5,7 @@ package XPAN::Context;
 
 use Moose;
 
-#with 'XPAN::Helper';
-
-use Log::Dispatch;
+use XPAN::LogDispatch;
 use Log::Dispatch::Screen;
 use XPAN::User;
 
@@ -17,7 +15,7 @@ has log => (
   lazy => 1,
   default => sub {
     my ($self) = @_;
-    my $d = Log::Dispatch->new;
+    my $d = XPAN::LogDispatch->new;
     $d->add($self->loggers);
     return $d;
   },
@@ -48,7 +46,8 @@ has loggers => (
 has user => (
   is => 'ro',
   isa => 'XPAN::User',
-  required => 1,
+  lazy => 1,
+  default => sub { XPAN::User->new },
 );
 
 1;
