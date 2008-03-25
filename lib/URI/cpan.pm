@@ -79,6 +79,7 @@ sub sep { ' ' }
 package URI::cpan::author;
 use base qw(URI::cpan);
 use File::Basename ();
+use URI::Escape ();
 
 sub type { 'author' }
 
@@ -97,14 +98,19 @@ sub filename {
   return File::Basename::basename($self->path);
 }
 
-sub full_path {
-  my ($self) = @_;
+sub full_path     { shift->_full_path }
+sub full_path_url { shift->_full_path(1) }
+
+sub _full_path {
+  my ($self, $escape) = @_;
   my $id = $self->cpanid;
-  return sprintf "authors/id/%s/%s/%s%s",
-    substr($id, 0, 1),
-    substr($id, 0, 2),
-    $id,
-    $self->path,
+  return join "/",
+    map { $escape ? URI::Escape::uri_escape($_) : $_ }
+      qw(authors id),
+      substr($id, 0, 1),
+      substr($id, 0, 2),
+      $id,
+      grep { defined && length } split m{/}, $self->path,
   ;
 }
 
