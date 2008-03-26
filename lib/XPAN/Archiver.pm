@@ -9,7 +9,7 @@ use File::Copy ();
 use XPAN::DB;
 use XPAN::Config;
 use XPAN::Context;
-use XPAN::Util -all;
+use Iterator::Simple qw(:all);
 use CPAN::DistnameInfo;
 use URI;
 
@@ -200,12 +200,13 @@ sub injector_for {
   };
 }
 
-sub auto_inject {
+sub batch_auto_inject {
   my $self = shift;
   my $opt  = ref $_[-1] eq 'HASH' ? pop : {};
-  my $iter = $opt->{no_deps}
-    ? $self->auto_inject_iter_no_deps(@_)
-    : $self->auto_inject_iter_follow_deps(@_);
+  my $iter = $self->iter_auto_inject([@_]);
+  unless ($opt->{no_deps}) {
+    $iter = $self->filter_follow_deps($iter);
+  }
   my @res;
   while (my $res = $iter->next) {
     push @res, $res;
@@ -233,26 +234,25 @@ sub auto_inject_one {
   return $injector->inject($url);
 }
 
-sub auto_inject_iter_no_deps {
+sub iter_auto_inject {
   my $self = shift;
-  return iter_map { $self->auto_inject_one($_) } iter_auto(@_);
+  imap { $self->auto_inject_one($_) } iflatten @_;
 }
 
 # follow dependencies 
-sub auto_inject_iter_follow_deps {
+sub filter_follow_deps {
   my $self = shift;
-  my $iter = $self->auto_inject_iter_warn_deps(@_);
-  return iter_map {
+  iflatten imap {
     my $res = $_;
+    my @r = $res;
     if (exists $res->warning->{unmet_deps}) {
       my @unmet = @{ $res->warning->{unmet_deps} };
-      #use Data::Dumper; warn Dumper(\@unmet);
-      $iter->prepend($self->auto_inject_iter_follow_deps(
-        map { $_->{url} } @unmet,
-      ));
+      push @r, $self->filter_follow_deps(
+        $self->iter_auto_inject(map { $_->{url} } @unmet)
+      );
     }
-    return $res;
-  } $iter;
+    return iter \@r;
+  } iflatten @_;
 }
 
 # we never want to try to fill these dependencies
@@ -261,12 +261,10 @@ my %SKIP_DEP = (
   Config => 1,
 );
 
-sub auto_inject_iter_warn_deps {
+sub filter_unmet_deps {
   my $self = shift;
-
   my $cpan = $self->injector_for('CPAN');
-
-  return iter_map {
+  imap {
     my $res = $_;
     return $res if $res->isa('XPAN::Result::Success::Already')
       or ! $res->is_success;
@@ -278,7 +276,7 @@ sub auto_inject_iter_warn_deps {
         { dep => $dep, url => $dep_url };
     }
     return $res;
-  } $self->auto_inject_iter_no_deps(@_);
+  } iflatten @_;
 }
 
 sub inject_one {
