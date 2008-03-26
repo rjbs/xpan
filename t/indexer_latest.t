@@ -7,7 +7,7 @@ use Module::Faker::Dist;
 
 my $archiver = XPAN::Archiver::Test->new(inject_tests => 0);
 
-$archiver->auto_inject(
+$archiver->batch_auto_inject(
   map { 
     'file://' .
     Module::Faker::Dist

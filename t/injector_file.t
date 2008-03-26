@@ -8,7 +8,7 @@ use Module::Faker::Dist;
 
 my $archiver = XPAN::Archiver::Test->new(inject_tests => 0);
 
-$archiver->auto_inject(
+$archiver->batch_auto_inject(
   'file://' . 
   Module::Faker::Dist
     ->from_file('t/dist/Scan-Test-0.10.yaml')

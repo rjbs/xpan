@@ -52,7 +52,7 @@ sub test_distribution_files {
 
 sub inject_test_distributions {
   my $self = shift;
-  $self->auto_inject(
+  $self->batch_auto_inject(
     (map { "file://$_" } $self->test_distribution_files),
     { no_deps => 1 },
   );

@@ -5,7 +5,7 @@ package XPAN::App::Command::inject;
 
 use base qw(App::Cmd::Command);
 use XPAN::Archiver;
-use XPAN::Util qw(iter);
+use Iterator::Simple qw(:all);
 
 sub opt_spec {
   return (
@@ -25,11 +25,13 @@ sub run {
     path    => $opt->{path},
   );
 
-  my $arg_iter = (@$args == 1 and $args->[0] eq '-') 
-    ? iter { defined(my $arg = <STDIN>) or return; chomp $arg; $arg }
-    : iter { shift @$args };
-    
-  my $iter = $arch->auto_inject_iter_follow_deps($arg_iter);
+  my $iter = $arch->filter_follow_deps(
+    $arch->iter_auto_inject(
+      (@$args == 1 and $args->[0] eq '-') 
+        ? imap { chomp; $_ } \*STDIN
+        : $args
+    )
+  );
 
   #$arch->db->do_transaction(sub {
     while (my $res = $iter->next) {

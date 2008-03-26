@@ -34,6 +34,6 @@ my $dist_dir = $dist->make_dist_dir({ dir => $tmp });
 system(<<"") && exit $?;
 svn import -m test $dist_dir file://$repo/$dist_name >/dev/null
 
-my ($res) = $arch->auto_inject("SVN::file://$repo/$dist_name");
+my ($res) = $arch->batch_auto_inject("SVN::file://$repo/$dist_name");
 isa_ok($res, 'XPAN::Result::Success');
 $arch->contains_dist_ok($dist_name, $dist->version);
