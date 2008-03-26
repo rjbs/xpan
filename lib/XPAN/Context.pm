@@ -6,8 +6,8 @@ package XPAN::Context;
 use Moose;
 
 use XPAN::LogDispatch;
-use Log::Dispatch::Screen;
 use XPAN::User;
+use Carp ();
 
 has log => (
   is => 'ro',
@@ -35,10 +35,7 @@ has loggers => (
   auto_deref => 1,
   default => sub {
     return [
-      Log::Dispatch::Screen->new(
-        name => 'screen', min_level => 'debug',
-        callbacks => sub { my %p = @_; "$p{message}\n" },
-      )
+      [ 'screen' ],    
     ];
   },
 );

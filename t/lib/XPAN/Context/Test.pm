@@ -9,9 +9,7 @@ BEGIN { extends 'XPAN::Context' }
 has '+loggers' => (
   default => sub {
     return [
-      Log::Dispatch::Screen->new(
-        name => 'screen', min_level => 'emerg',
-      )
+      [ screen => { min_level => 'emerg' } ],
     ];
   },
 ); 
