@@ -84,10 +84,7 @@ sub matches {
         'dist.modules.name' => $self->name,
       ],
     );
-    unless ($pin) {
-      Carp::croak "pinset $arg has no pin for " . $self->dist->name;
-    }
-    $arg = $pin;
+    return unless $arg = $pin;
   }
 
   if ($arg->isa('XPAN::Pin')) {
@@ -95,7 +92,7 @@ sub matches {
   }
 
   if ($arg->isa('XPAN::Dist')) {
-    warn "looking for " . $self->name . " in " . $arg->name . "\n";
+    #warn "looking for " . $self->name . " in " . $arg->name . "\n";
     ($arg) = $arg->find_modules({ name => $self->name });
     return unless $arg;
   }
