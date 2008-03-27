@@ -294,11 +294,19 @@ sub inject_one {
     %$arg,
     db => $self->db,
   );
-  File::Copy::copy(
-    $source,
-    $dir->file($arg->{file}),
-  );
-  unless ($dist->load(speculative => 1)) { $dist->save }
+  $dist->save;
+  my $target = $dir->file($dist->path);
+  eval { 
+    $target->parent->mkpath;
+    File::Copy::copy(
+      $source,
+      $target,
+    );
+  };
+  if (my $e = $@) {
+    $dist->delete;
+    die "Could not copy $source -> $target: $@";
+  }
   return $dist;
 }
 
