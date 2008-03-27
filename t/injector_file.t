@@ -32,6 +32,6 @@ is($modules[0]->name, "Scan::Test");
 is($modules[1]->name, "Scan::Test::Inner");
 
 ok(
-  -e $archiver->path->subdir('dist')->file('Scan-Test-0.10.tar.gz'),
+  -e $archiver->path->subdir('dist')->file($dist->path),
   "dist file copied to archive subdir",
 );
