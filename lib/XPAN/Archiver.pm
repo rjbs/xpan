@@ -11,6 +11,7 @@ use XPAN::Config;
 use XPAN::Context;
 use Iterator::Simple qw(:all);
 use CPAN::DistnameInfo;
+use CPAN::Version;
 use URI;
 
 use Module::Pluggable::Object;
@@ -365,5 +366,56 @@ sub find_dist {
   my $dist = $self->dist->new(%p);
   return $dist->load(speculative => 1) && $dist;
 }
+
+sub find_highest_version {
+  my ($self, $type, $query) = @_;
+  #use Data::Dumper; warn Dumper({ $type => $query });
+  my @p = sort {
+    CPAN::Version->vcmp($a->version, $b->version) ||
+    ($type eq 'module' 
+      ? CPAN::Version->vcmp($a->dist->version, $b->dist->version)
+      : 0
+    )
+  } @{ $self->$type->manager->get_objects(
+    query => $query
+  ) };
+  return $p[-1];
+}
+
+sub url_to_dist {
+  my ($self, $url) = @_;
+  blessed $url or $url = URI->new($url);
+  if ($url->type eq 'dist') {
+    return $self->find_dist([ $url->name, $url->version ])
+      if defined $url->version;
+    return $self->find_highest_version(
+      dist => [ name => $url->name ],
+    );
+  }
+
+  if ($url->type eq 'package') {
+    my $pkg = $self->find_highest_version(
+      module => [
+        name => $url->name,
+        defined $url->version
+          ? (version => $url->version) : (),
+      ],
+    );
+    return $pkg->dist;
+  }
+
+  if ($url->type eq 'id') {
+    return $self->dist->manager->get_objects_iterator(
+      query => [
+        file      => $url->file_path,
+        authority => $url->id,
+      ],
+    )->next;
+  }
+
+  die "unhandled url: $url";
+}
+    
+
       
 1;
