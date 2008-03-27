@@ -4,6 +4,7 @@ use warnings;
 package XPAN::Dist;
 
 use base qw(XPAN::DB::Object);
+use Path::Class ();
 
 sub __create {
   return <<END;
@@ -14,8 +15,8 @@ CREATE TABLE dists (
   abstract TEXT,
   file VARCHAR(110) NOT NULL,
   origin TEXT,
-  authority TEXT,
-  UNIQUE(name, version)
+  authority TEXT NOT NULL,
+  UNIQUE(name, version, authority)
 );
 END
 }
@@ -30,12 +31,15 @@ __PACKAGE__->meta->setup(
     file      => { type => 'varchar', length   => 110, not_null => 1 },
     abstract  => { type => 'text' },
     origin    => { type => 'text' },
-    authority => { type => 'text' },
+    authority => { type => 'text', not_null => 1 },
   ],
 
   primary_key_columns => ['id'],
 
-  unique_keys => [ [ qw(name version) ] ],
+  unique_keys => [
+    [ qw(name version) ],
+    [ qw(file) ],
+  ],
 
   relationships => [
     modules => {
@@ -55,6 +59,14 @@ __PACKAGE__->make_manager_class;
 
 sub vname {
   return sprintf "%s-%s", $_[0]->name, $_[0]->version;
+}
+
+sub path {
+  my ($self) = @_;
+  return Path::Class::file(
+    split(/:/, $self->authority),
+    $self->file,
+  );
 }
 
 1;
