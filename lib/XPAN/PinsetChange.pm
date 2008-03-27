@@ -158,32 +158,32 @@ sub apply {
     Carp::confess "asked to apply changes, but conflicts are present";
   }
 
-  $self->pinset->db->do_transaction(sub {
+  my $ps = $self->pinset;
+  $ps->db->do_transaction(sub {
     my @pins;
     for (keys %$changes) {
       my $dist = $changes->{$_}{to};
       if (my $pin = $changes->{$_}{from}) {
         $pin->version($dist->version);
         $pin->$_($self->extra->{$_}) for keys %{ $self->extra };
-        $pin->save;
+        #$pin->save;
         push @pins, $pin;
       } else {
-        push @pins, $self->pinset->add_pins(
+        push @pins, $ps->add_pins(
           {
             name => $dist->name,
             version => $dist->version,
-            %{ $self->extra },
+            pinset_id => $ps->id,
+            db => $ps->db,
+            %{ $changes->{$_}{extra} },
           }
         );
       }
     }
-    {
-      use Data::Dumper; local $Data::Dumper::Maxdepth = 1;
-      #warn Dumper(@pins);
-    }
-    $self->pinset->save;
+    $_->save for @pins;
+    $ps->save;
   });
-  die $self->pinset->db->error if $self->pinset->db->error;
+  die $ps->db->error if $ps->db->error;
 }
 
 1;
