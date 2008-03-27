@@ -30,7 +30,7 @@ sub _view {
   my $self = shift;
   require Text::Table;
   for my $ps (@_) {
-    print '* ', $ps->name, "\n";
+    print '+ ', $ps->name, "\n";
     my $table = Text::Table->new(
       \'  ', qw(name version manual install_reason hard_pin_reason)
     );
