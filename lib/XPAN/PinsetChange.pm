@@ -32,6 +32,19 @@ has conflicts => (
   default => sub { shift->build_conflicts },
 );
 
+has extra => (
+  is => 'ro',
+  isa => 'HashRef',
+  lazy => 1,
+  default => sub { {} },
+);
+
+has include_deps => (
+  is => 'ro',
+  isa => 'Bool', 
+  default => 1,
+);
+
 use Module::CoreList;
 use Sort::Versions;
 use Carp;
@@ -42,10 +55,16 @@ sub build_changes {
   my %changes;
 
   my @queue = $self->dists;
+  my %orig = map { $_ => 1 } @queue;
 
+  my $order;
   my %seen;
   while (@queue) {
     my $dist = shift @queue;
+    my $extra;
+    if (ref $dist eq 'ARRAY') {
+      ($dist, $extra) = @$dist;
+    }
     next if $seen{$dist->id}++;
     my ($pin) = $self->pinset->find_pins({ name => $dist->name });
 
@@ -62,6 +81,14 @@ sub build_changes {
       };
     }
 
+    if ($orig{$dist}) {
+      $changes{$dist->name}{extra} = $self->extra;
+    } else {
+      $changes{$dist->name}{extra} = $extra;
+    }
+    $changes{$dist->name}{order} = ++$order;
+
+    next unless $self->include_deps;
     for my $dep ($dist->dependencies) {
 
       next if Module::CoreList->first_release($dep->name);
@@ -76,13 +103,17 @@ sub build_changes {
           die "no module found to fulfill dependency " . $dep->as_string;
         }
 
-        push @queue, $module->dist;
+        push @queue, [ $module->dist, {
+          install_reason => 'dependency of ' . $dist->vname,
+        } ];
       }
     }
   }
 
   return \%changes;
 }
+
+sub has_changes { 0 < keys %{ shift->changes } }
 
 sub build_conflicts {
   my ($self) = @_;
@@ -93,7 +124,7 @@ sub build_conflicts {
     }
     grep {
       $changes->{$_}{from} &&
-      $changes->{$_}{from}->reason
+      $changes->{$_}{from}->hard_pin_reason
     } keys %$changes
   };
   return unless %$conflicts;
@@ -103,14 +134,16 @@ sub build_conflicts {
 sub table {
   my ($self, $data) = @_;
   require Text::Table;
-  my $table = Text::Table->new("dist", "from", "to");
+  my $table = Text::Table->new("dist", "from", "to", "manual", "reason");
 
-  for (keys %$data) {
+  for (sort { $data->{$a}{order} <=> $data->{$b}{order} } keys %$data) {
     my $c = $data->{$_};
     $table->add(
       $_,
       $c->{from} && $c->{from}->version,
       $c->{to}->version,
+      $c->{extra}{manual} ? 'yes' : 'no',
+      $c->{extra}{install_reason},
     );
   }
 
@@ -126,22 +159,31 @@ sub apply {
   }
 
   $self->pinset->db->do_transaction(sub {
+    my @pins;
     for (keys %$changes) {
       my $dist = $changes->{$_}{to};
       if (my $pin = $changes->{$_}{from}) {
         $pin->version($dist->version);
+        $pin->$_($self->extra->{$_}) for keys %{ $self->extra };
         $pin->save;
+        push @pins, $pin;
       } else {
-        $self->pinset->add_pins(
+        push @pins, $self->pinset->add_pins(
           {
             name => $dist->name,
             version => $dist->version,
+            %{ $self->extra },
           }
         );
       }
     }
+    {
+      use Data::Dumper; local $Data::Dumper::Maxdepth = 1;
+      #warn Dumper(@pins);
+    }
     $self->pinset->save;
   });
+  die $self->pinset->db->error if $self->pinset->db->error;
 }
 
 1;
