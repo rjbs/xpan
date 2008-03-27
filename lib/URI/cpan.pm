@@ -95,6 +95,7 @@ sub _path_part {
   }
   my ($length) = map { $_->[1] } grep { $_->[0] eq $part }
     $self->_parse_parts($self->_path_parts);
+  return if $length eq 1 and not @p;
   return join '/', ($length eq 1 ? () : ''), @p;
 }
 
