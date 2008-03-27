@@ -46,7 +46,7 @@ has include_deps => (
 );
 
 use Module::CoreList;
-use Sort::Versions;
+use CPAN::Version;
 use Carp;
 
 sub build_changes {
@@ -97,7 +97,10 @@ sub build_changes {
       unless (($pin && $dep->matches($self->pinset))
         || grep { $dep->matches($_->{to}) } values %changes) {
 
-        my ($module) = sort versioncmp $dep->matching_modules;
+        my ($module) = sort {
+          CPAN::Version->vcmp($b->version, $a->version) ||
+          CPAN::Version->vcmp($b->dist->version, $a->dist->version)
+        } $dep->matching_modules;
 
         unless ($module) {
           die "no module found to fulfill dependency " . $dep->as_string;
