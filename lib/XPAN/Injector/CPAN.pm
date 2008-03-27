@@ -60,10 +60,10 @@ sub dist_url {
     return $url;
   }
 
-  if ($url->type eq 'author') {
+  if ($url->type eq 'id') {
     my $info = CPAN::DistnameInfo->new($url->full_path);
     unless ($info->dist) {
-      Carp::croak "author url '$url' does not refer to a dist";
+      Carp::croak "id url '$url' does not refer to a dist";
     }
     return URI->new(sprintf(
       'cpan://dist/%s/%s',
@@ -96,10 +96,10 @@ sub dist_url {
   Carp::croak "unknown CPAN url: $url";
 }
 
-sub author_url {
+sub id_url {
   my ($self, $url) = @_;
   $url = $self->_validate($url);
-  return $url if $url->type eq 'author';
+  return $url if $url->type eq 'id';
 
   $url = $self->dist_url($url);
   $self->cpan->query(
@@ -123,13 +123,13 @@ sub author_url {
     $result = { cpanid => $dist->cpanid, dist_file => $dist->filename };
   }
   return URI->new(sprintf(
-    'cpan://%s/%s', $result->{cpanid}, $result->{dist_file},
+    'cpan://id/%s/%s', $result->{cpanid}, $result->{dist_file},
   ));
 }
 
 sub normalize {
   my ($self, $url) = @_;
-  return $self->author_url($url);
+  return $self->id_url($url);
 }
 
 before prepare => sub {
@@ -144,9 +144,9 @@ before prepare => sub {
 
 sub url_to_file {
   my ($self, $url) = @_;
-  $url = $self->author_url($url);
+  $url = $self->id_url($url);
   my $tmp = File::Temp::tempdir(CLEANUP => 1);
-  my $file = "$tmp/" . $url->filename;
+  my $file = "$tmp/" . $url->file_path->basename;
   return $self->_mirror_from(
     [ 
       map { 
