@@ -54,7 +54,7 @@ for my $test (
     ok($res->is_success, "inject: success");
     my $dist = $archiver->contains_dist_ok('Package-Generator', '0.102');
     is($dist->authority, 'cpan:RJBS', "correct authority");
-    is($dist->origin, 'cpan://RJBS/Package-Generator-0.102.tar.gz',
+    is($dist->origin, 'cpan://id/RJBS/Package-Generator-0.102.tar.gz',
       "correct origin");
     $dist->delete;
   }
