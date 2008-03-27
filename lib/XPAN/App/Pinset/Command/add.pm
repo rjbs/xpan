@@ -18,6 +18,7 @@ sub opt_spec {
     ],
     [ mode => [
       [ 'not-really|n', "don't apply change, just print it" ],
+      [ 'non-interactive|N', "apply change without prompting" ],
       [ 'interactive|i', "show change and prompt to apply" ],
     ], { default => 'interactive' } ],
     [ 'reason|r=s', 'install reason (required)',
@@ -51,7 +52,8 @@ sub run {
   my $DONE = "DONE\n";
   $ps->db->do_transaction(sub {
     my @dists = map { 
-      my $dist = $self->archiver->url_to_dist($_);
+      $self->archiver->url_to_dist($_) or
+        Carp::croak "url is not a valid dist: $_"
     } @$args;
     $change = $ps->change(
       include_deps => $opt->{include_deps},
