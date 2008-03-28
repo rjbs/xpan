@@ -33,7 +33,7 @@ sub run {
     )
   );
 
-  #$arch->db->do_transaction(sub {
+  $arch->db->do_transaction(sub {
     while (my $res = $iter->next) {
       if ($res->is_success) {
         if ($res->isa('XPAN::Result::Success::Already')) {
@@ -54,8 +54,8 @@ sub run {
         die $res if $res->isa('XPAN::Result::Error::Fatal');
       }
     }
-  #});
-  #die $arch->db->error if $arch->db->error;
+  });
+  die $arch->db->error if $arch->db->error;
 }
 
 1;
