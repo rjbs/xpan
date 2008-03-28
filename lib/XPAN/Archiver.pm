@@ -314,7 +314,7 @@ sub inject_one {
 sub dists_by_name_iterator {
   my $self = shift;
   my $iter = $self->dist->manager->get_objects_iterator(
-    sort_by => [ qw(name version) ],
+    sort_by => [ qw(name) ],
   );
   my $last = [ '' ];
   my $sort = sub {
