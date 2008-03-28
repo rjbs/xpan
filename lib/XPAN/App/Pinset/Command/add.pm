@@ -28,6 +28,7 @@ sub opt_spec {
     [ 'include-deps|D!', 'include dependencies (default: yes)',
       { default => 1 },
     ],
+    [ 'rebuild', 'rebuild index after changes' ],
   );
 }
 
@@ -86,6 +87,10 @@ sub run {
     }
   });
   die $ps->db->error if $ps->db->error and $ps->db->error !~ /$DONE$/;
+
+  if ($opt->{rebuild} and $opt->{mode} ne 'not_really') {
+    $self->archiver->indexer(-Pinset => pinset => $ps)->build;
+  }
 }
     
 1;

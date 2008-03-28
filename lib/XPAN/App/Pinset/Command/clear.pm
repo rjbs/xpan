@@ -21,6 +21,7 @@ sub opt_spec {
       [ 'all', 'delete all pins' ],
       [ 'entire', 'delete entire pinset' ],
     ], { default => 'pins' } ],
+    [ 'rebuild', 'rebuild index after changes' ],
   );
 }
 
@@ -70,6 +71,10 @@ sub run {
   });
   die $ps->db->error if $ps->db->error;
   print $table;
+
+  if ($opt->{rebuild}) {
+    $self->archiver->indexer(-Pinset => pinset => $ps)->build;
+  }
 }
 
 1;
