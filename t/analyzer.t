@@ -25,6 +25,7 @@ my $no_meta     = _mk_tgz('NoMeta-0.02.yaml');
 my $meta_over   = _mk_tgz('MetaOverride-1.00.yaml');
 my $has_deps    = _mk_tgz('HasDeps.yaml');
 my $scan_test   = _mk_tgz('Scan-Test-0.10.yaml');
+my $meta_older  = _mk_tgz('MetaOlder-1.00.yaml');
 # my $broken_meta = _mk_tgz('BrokenMeta.yaml');
 
 cmp_deeply(
@@ -37,11 +38,22 @@ cmp_deeply(
   $anz->analyze($meta_over),
   {
     name     => 'Meta-Override',
-    version  => '0.100',
+    version  => '1.01',
     abstract => 'a dist where META.yml overrides the filename',
     modules  => ignore(),
   },
   "analyzed with META.yml taking precedence",
+);
+
+cmp_deeply(
+  $anz->analyze($meta_older),
+  {
+    name => 'MetaOlder',
+    version => '1.00',
+    abstract => 'META.yml is older than the filename',
+    modules => ignore(),
+  },
+  "analyzed with META.yml old version ignored",
 );
 
 # is_deeply(
