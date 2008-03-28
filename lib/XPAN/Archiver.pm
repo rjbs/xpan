@@ -318,7 +318,11 @@ sub dists_by_name_iterator {
   );
   my $last = [ '' ];
   my $sort = sub {
-    sort { CPAN::Version->vcmp($a->version, $b->version) } @_
+    my $name = shift;
+    return (
+      $name,
+      [ sort { CPAN::Version->vcmp($a->version, $b->version) } @{ +shift} ],
+    );
   };
   return sub {
     DIST: {
