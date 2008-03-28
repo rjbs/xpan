@@ -317,6 +317,9 @@ sub dists_by_name_iterator {
     sort_by => [ qw(name version) ],
   );
   my $last = [ '' ];
+  my $sort = sub {
+    sort { CPAN::Version->vcmp($a->version, $b->version) } @_
+  };
   return sub {
     DIST: {
       my $item = $iter->next;
@@ -324,7 +327,7 @@ sub dists_by_name_iterator {
         if ($last->[0]) {
           my $return = $last;
           $last = [ '' ];
-          return @$return;
+          return $sort->(@$return);
         }
         return;
       }
@@ -333,7 +336,7 @@ sub dists_by_name_iterator {
         $last = [ $item->name => [ $item ] ];
         # special case for the first time through
         if ($return->[0]) {
-          return @$return;
+          return $sort->(@$return);
         } else {
           redo DIST;
         }
