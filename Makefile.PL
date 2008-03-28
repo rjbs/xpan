@@ -17,7 +17,7 @@ requires 'Module::Pluggable::Object' => 0;
 requires 'Config::INI::Reader'       => 0;
 requires 'Iterator::Simple'          => '0.04';
 
-install_script 'script/xpan';
+install_script <script/*>;
 
 WriteAll;
 
