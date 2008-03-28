@@ -1,9 +1,15 @@
 use strict;
 use warnings;
 
-package XPAN::App::Command::old;
+package XPAN::App::Command::outdated;
 
 use base qw(App::Cmd::Command);
+
+=head1 NAME
+
+XPAN::App::Command::outdated - print outdated dists
+
+=cut
 
 use XPAN::Archiver;
 
