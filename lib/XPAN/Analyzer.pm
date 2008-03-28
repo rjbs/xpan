@@ -204,9 +204,23 @@ sub analyze {
         $self->parse_meta($tar->content("$base/META.yml"));
       };
       if (my $e = $@) {
-        $self->log->warning([ "could not parse $base/META.yml: $e" ]);
+        $self->log->warning("could not parse $base/META.yml: $e");
       } elsif (not %meta) {
-        $self->log->warning([ "$base/META.yaml returned undef" ]);
+        $self->log->warning("$base/META.yaml returned undef");
+      }
+      # people pretty frequently forget to bump META.yml (I guess their build
+      # tools don't handle it automatically?)
+      if ($dist{version} and $meta{version} and
+        CPAN::Version->vlt($meta{version}, $dist{version}) and
+        my $cfg = $self->config->get('meta_yml_ignore_lower_version')) {
+        if ($cfg eq 'warn') {
+          $self->log->warning([
+            "version %s from META.yml is lower than dist filename version %s,"
+            . " ignoring it",
+            $meta{version}, $dist{version},
+          ]);
+        }
+        delete $meta{version};
       }
       %dist = (%dist, %meta);
       #use Data::Dumper; warn Dumper(\%meta, \%dist);
