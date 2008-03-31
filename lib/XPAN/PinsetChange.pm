@@ -130,9 +130,10 @@ sub build_conflicts {
       $changes->{$_}{from}->hard_pin_reason
     } keys %$changes
   };
-  return unless %$conflicts;
   return $conflicts;
 }
+
+sub has_conflicts { 0 < keys %{ shift->conflicts } }
 
 sub table {
   my ($self, $data) = @_;
@@ -157,7 +158,7 @@ sub apply {
   my ($self) = @_;
   my $changes = $self->changes;
 
-  if ($self->conflicts) {
+  if ($self->has_conflicts) {
     Carp::confess "asked to apply changes, but conflicts are present";
   }
 
