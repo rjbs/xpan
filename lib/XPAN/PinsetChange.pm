@@ -45,7 +45,7 @@ has include_deps => (
   default => 1,
 );
 
-has update => (
+has upgrade => (
   is => 'ro',
   isa => 'Bool',
   default => 0,
@@ -76,8 +76,8 @@ sub build_changes {
 
     if ($pin) {
       next if $pin->version eq $dist->version;
-      next if $self->update and
-        CPAN::Version->vlt($dist->version, $pin->version);
+      next if $self->upgrade
+        and CPAN::Version->vlt($dist->version, $pin->version);
 
       $changes{$dist->name} = {
         from => $pin,

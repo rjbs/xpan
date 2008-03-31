@@ -21,7 +21,7 @@ sub opt_spec {
       [ 'non-interactive|N', "apply change without prompting" ],
       [ 'interactive|i', "show change and prompt to apply" ],
     ], { default => 'interactive' } ],
-    [ 'update|U', 'only update pins if they exist, do not downgrade' ],
+    [ 'upgrade|U!', 'only upgrade pins, do not downgrade' ],
     [ 'reason|r=s', 'install reason (required)',
       { required => 1 },
     ],
@@ -61,7 +61,7 @@ sub run {
       include_deps => $opt->{include_deps},
       dists => \@dists,
       extra => {
-        update => $opt->{update},
+        upgrade => $opt->{upgrade},
         manual => 1,
         install_reason  => $opt->{reason},
         hard_pin_reason => $opt->{hard_reason},
