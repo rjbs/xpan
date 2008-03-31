@@ -1,0 +1,6 @@
+#!/icg/bin/perl-5.8
+
+use strict;
+use warnings;
+use XPAN::App::Dist;
+XPAN::App::Dist->run;
