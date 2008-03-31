@@ -13,6 +13,9 @@ has _data => (
 );
 
 my $DEFAULT = {
+  'XPAN::Analyzer' => {
+    meta_yml_ignore_lower_version => 1,
+  },
   'XPAN::Injector::CPAN' => {
     cpan_mirror    => 'http://www.cpan.org',
     backpan_mirror => 'http://backpan.perl.org',
@@ -31,6 +34,12 @@ use Config::INI::Reader;
 sub read_file {
   my ($class, $file) = @_;
   return $class->new->update(Config::INI::Reader->read_file($file));
+}
+
+use Config::INI::Writer;
+sub write_file {
+  my ($self, $file) = @_;
+  Config::INI::Writer->write_file($self->_data, $file);
 }
 
 sub get {
