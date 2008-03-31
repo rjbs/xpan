@@ -45,6 +45,12 @@ has include_deps => (
   default => 1,
 );
 
+has update => (
+  is => 'ro',
+  isa => 'Bool',
+  default => 0,
+);
+
 use Module::CoreList;
 use CPAN::Version;
 use Carp;
@@ -70,6 +76,8 @@ sub build_changes {
 
     if ($pin) {
       next if $pin->version eq $dist->version;
+      next if $self->update and
+        CPAN::Version->vlt($dist->version, $pin->version);
 
       $changes{$dist->name} = {
         from => $pin,
