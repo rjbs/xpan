@@ -21,6 +21,7 @@ sub opt_spec {
       [ 'non-interactive|N', "apply change without prompting" ],
       [ 'interactive|i', "show change and prompt to apply" ],
     ], { default => 'interactive' } ],
+    [ 'update|U', 'only update pins if they exist, do not downgrade' ],
     [ 'reason|r=s', 'install reason (required)',
       { required => 1 },
     ],
@@ -52,7 +53,7 @@ sub run {
   my $change;
   my $DONE = "DONE\n";
   $ps->db->do_transaction(sub {
-    my @dists = map { 
+    my @dists = map {
       $self->archiver->url_to_dist($_) or
         Carp::croak "url is not a valid dist: $_"
     } @$args;
@@ -60,6 +61,7 @@ sub run {
       include_deps => $opt->{include_deps},
       dists => \@dists,
       extra => {
+        update => $opt->{update},
         manual => 1,
         install_reason  => $opt->{reason},
         hard_pin_reason => $opt->{hard_reason},
