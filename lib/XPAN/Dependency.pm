@@ -101,7 +101,7 @@ sub matches {
     # XXX see CPAN::Dist::unsat_prereqs -- we should also allow things like
     # this:
     # '> 5.005, !=5.9.1, !=5.9.2'
-    return CPAN::Version->vcmp($self->version, $arg->version || 0) >= 0;
+    return CPAN::Version->vcmp($self->version, $arg->version || 0) <= 0;
   } else {
     Carp::croak "unhandled argument to matches(): $arg";
   }
