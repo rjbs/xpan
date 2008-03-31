@@ -94,7 +94,7 @@ sub build_changes {
       next if Module::CoreList->first_release($dep->name);
       next if $dep->name eq 'perl';
 
-      unless (($pin && $dep->matches($self->pinset))
+      unless ($dep->matches($self->pinset)
         || grep { $dep->matches($_->{to}) } values %changes) {
 
         my ($module) = sort {
