@@ -53,6 +53,12 @@ __PACKAGE__->meta->setup(
       class      => 'XPAN::Dependency',
       column_map => { id => 'dist_id' },
     },
+
+    pins => {
+      type => 'one to many',
+      class => 'XPAN::Pin',
+      column_map => { name => 'name', version => 'version' },
+    },
   ],
 );
 __PACKAGE__->make_manager_class;
