@@ -60,8 +60,8 @@ sub run {
     $change = $ps->change(
       include_deps => $opt->{include_deps},
       dists => \@dists,
+      upgrade => $opt->{upgrade},
       extra => {
-        upgrade => $opt->{upgrade},
         manual => 1,
         install_reason  => $opt->{reason},
         hard_pin_reason => $opt->{hard_reason},
