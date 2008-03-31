@@ -72,10 +72,14 @@ sub _details {
   if ($dist->pins) {
     print "  + pinsets\n";
     my $table = Text::Table->new(
-      \'    ', qw(name),
+      \'    ', qw(name reason hard_reason),
     );
     for my $pin ($dist->pins) {
-      $table->add($pin->pinset->name);
+      $table->add(
+        $pin->pinset->name,
+        $pin->install_reason,
+        $pin->hard_pin_reason,
+      );
     }
     print $table;
   }
