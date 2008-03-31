@@ -1,18 +1,18 @@
 use strict;
 use warnings;
 
-package XPAN::App::Command::testarchive;
+package XPAN::App::Command::testsetup;
 
 use base qw(App::Cmd::Command);
 use Path::Class ();
 
 =head1 NAME
 
-XPAN::App::Command::testarchive - set up a test archive
+XPAN::App::Command::testsetup - set up a test XPAN archive
 
 =cut
 
-sub usage_desc { '%c testarchive %o <dst>' }
+sub usage_desc { '%c testsetup %o <dir>' }
 
 sub validate_args {
   my ($self, $opt, $args) = @_;
