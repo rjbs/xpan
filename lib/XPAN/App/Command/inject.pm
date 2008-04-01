@@ -38,11 +38,11 @@ sub run {
       if ($res->is_success) {
         if ($res->isa('XPAN::Result::Success::Already')) {
           $arch->log->debug([
-            "\t-> already injected: %s", $res->dist->vname,
+            "\t-> already injected: %s", $res->dist->url,
           ]);
         } else {
           $arch->log->info([
-            "\t-> injected: %s", $res->dist->vname,
+            "\t-> injected: %s", $res->dist->url,
           ]);
         }
       } else {
