@@ -50,7 +50,8 @@ sub run {
       $url->scheme && $url->scheme eq 'xpan'
         or $self->usage_error("non-XPAN URL: $_");
     } else {
-      my $res = $self->auto_inject_one($_);
+      die "invalid URL: $_" unless $opt->{inject};
+      my $res = $self->archiver->auto_inject_one($_);
       if ($res->dist) {
         $url = $res->dist->url;
       } else {
