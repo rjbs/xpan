@@ -29,6 +29,7 @@ sub opt_spec {
     [ 'include-deps|D!', 'include dependencies (default: yes)',
       { default => 1 },
     ],
+    [ 'inject|I', 'inject non-xpan:// urls, then add them' ],
     [ 'rebuild', 'rebuild index after changes' ],
   );
 }
@@ -37,17 +38,28 @@ sub validate_args {
   my ($self, $opt, $args) = @_;
 
   $self->usage_error("at least one pin is required") unless @$args;
-
-  @$args = map {
-    my $url = URI->new($_) or $self->usage_error("invalid URL: $_");
-    $url->scheme && $url->scheme eq 'xpan'
-      or $self->usage_error("non-XPAN URL: $_");
-    $url
-  } @$args;
 }
 
 sub run {
   my ($self, $opt, $args) = @_;
+
+  @$args = map {
+    my $url;
+    if (/^xpan:/) {
+      $url = URI->new($_) or $self->usage_error("invalid URL: $_");
+      $url->scheme && $url->scheme eq 'xpan'
+        or $self->usage_error("non-XPAN URL: $_");
+    } else {
+      my $res = $self->auto_inject_one($_);
+      if ($res->dist) {
+        $url = $res->dist->url;
+      } else {
+        die sprintf "Could not inject %s: %s",
+          $res->url, $res->message;
+      }
+    }
+    $url
+  } @$args;
 
   my $ps = $self->archiver->find_pinset($opt->{pinset});
   my $change;
