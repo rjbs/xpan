@@ -75,4 +75,10 @@ sub path {
   );
 }
 
+sub url {
+  my ($self) = @_;
+  require URI;
+  return URI->new(sprintf 'xpan://dist/%s/%s', $self->name, $self->version);
+}
+
 1;

@@ -59,4 +59,10 @@ sub as_string {
   ;
 }
 
+sub url {
+  my ($self) = @_;
+  require URI;
+  return URI->new(sprintf 'xpan://pin/%s/%s', $self->name, $self->version);
+}
+
 1;
