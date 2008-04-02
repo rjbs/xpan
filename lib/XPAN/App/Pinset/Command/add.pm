@@ -84,6 +84,11 @@ sub run {
       print "no changes\n";
       die $DONE;
     }
+    if ($change->has_conflicts) {
+      print "CONFLICTS PRESENT:\n";
+      print $change->table($change->conflicts);
+      die $DONE;
+    }
     print $change->table($change->changes);
     if ($opt->{mode} eq 'interactive') {
       print "Apply changes? [Y/n] ";
