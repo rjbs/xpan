@@ -47,6 +47,10 @@ sub each_distribution {
     local $_ = $dist;
     $code->();
   }
+  for my $dist ($self->extra_distributions) {
+    local $_ = $dist;
+    $code->();
+  }
 }
 
 sub all_distributions {
@@ -55,6 +59,8 @@ sub all_distributions {
   $self->each_distribution(sub { push @dists, $_ });
   return @dists;
 }
+
+sub extra_distributions { () }
 
 sub add_all_distributions {
   my ($self) = @_;
