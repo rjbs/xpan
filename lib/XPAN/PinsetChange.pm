@@ -92,7 +92,7 @@ sub build_changes {
     $c->{order} = ++$order;
 
     if ($self->upgrade and $c->{from}) {
-      delete $c->{extra}{install_reason};
+      $c->{extra}{install_reason} = $c->{from}->install_reason;
     }
 
     next unless $self->include_deps;
@@ -170,9 +170,9 @@ sub apply {
 
   if ($self->has_conflicts) {
     if ($self->force) {
-      $self->pinset->archiver->log->warn(
-        "conflicts present, but applying changes anyway",
-      );
+#      $self->pinset->archiver->log->warn(
+#        "conflicts present, but applying changes anyway",
+#      );
     } else {
       Carp::confess "asked to apply changes, but conflicts are present";
     }
