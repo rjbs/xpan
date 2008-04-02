@@ -19,7 +19,7 @@ while (my ($name, $dists) = $iter->()) {
 }
 
 for my $url (@url) {
-  local @ARGV = (inject => '--path', $path, $url);
+  local @ARGV = (inject => '--path', $path, "$url");
   require XPAN::App;
   XPAN::App->run;
 }
