@@ -42,6 +42,7 @@ has extra => (
 has include_deps => ( is => 'ro', isa => 'Bool', default => 1 );
 has upgrade      => ( is => 'ro', isa => 'Bool', default => 0 );
 has newer_only   => ( is => 'ro', isa => 'Bool', default => 0 );
+has force        => ( is => 'ro', isa => 'Bool', default => 0 );
 
 use Module::CoreList;
 use CPAN::Version;
@@ -168,7 +169,13 @@ sub apply {
   my $changes = $self->changes;
 
   if ($self->has_conflicts) {
-    Carp::confess "asked to apply changes, but conflicts are present";
+    if ($self->force) {
+      $self->pinset->archiver->log->warn(
+        "conflicts present, but applying changes anyway",
+      );
+    } else {
+      Carp::confess "asked to apply changes, but conflicts are present";
+    }
   }
 
   my $ps = $self->pinset;

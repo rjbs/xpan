@@ -25,6 +25,7 @@ sub opt_spec {
     [ 'upgrade|U', 'upgrade existing pins, keeping install reason' ],
     [ 'reason|r=s', 'install reason (required)', { required => 1 } ],
     [ 'hard-reason|R=s', 'hard pin reason' ],
+    [ 'force|f', 'force conflicts' ],
     [ 'include-deps|D!', 'include dependencies (default: yes)',
       { default => 1 },
     ],
@@ -74,6 +75,7 @@ sub run {
       dists => \@dists,
       upgrade => $opt->{upgrade},
       newer_only => $opt->{newer_only},
+      force => $opt->{force},
       extra => {
         manual => 1,
         install_reason  => $opt->{reason},
