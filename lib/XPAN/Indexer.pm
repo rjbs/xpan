@@ -6,6 +6,13 @@ package XPAN::Indexer;
 use Moose;
 with qw(XPAN::Helper);
 
+has dists => (
+  is => 'ro',
+  isa => 'ArrayRef[XPAN::Dist]',
+  auto_deref => 1,
+  default => sub { [] },
+);
+
 use Carp ();
 use CPAN::Checksums ();
 use HTTP::Date ();
@@ -64,7 +71,6 @@ sub extra_distributions { () }
 
 sub add_all_distributions {
   my ($self) = @_;
-  $self->{packages} = [];
   my %cpanid;
   $self->each_distribution(sub {
     $self->add_distribution($_);
@@ -76,7 +82,7 @@ sub add_all_distributions {
 
 sub add_distribution {
   my ($self, $dist) = @_;
-  $self->add_to_packages($dist);
+  $self->add_to_dists($dist);
   $self->add_distribution_link($dist);
 }
 
@@ -98,13 +104,15 @@ sub gzip_index_file {
   while (<$fh>) { print { $gz } $_ }
 }
 
-sub add_to_packages {
+sub add_to_dists {
   my ($self, $dist) = @_;
-  push @{ $self->{packages} }, $dist;
+  push @{ $self->dists }, $dist;
 }
 
 sub write_02packages {
   my $self = shift;
+  my $count = 0;
+  $count += $_->modules for $self->dists;
   my $fh = $self->index_fh('02packages');
   print $fh sprintf <<END,
 File:         02packages.details.txt
@@ -117,10 +125,10 @@ Line-Count:   %s
 Last-Updated: %s
 
 END
-    scalar @{ $self->{packages} },
+    $count,
     HTTP::Date::time2str;
 
-  for my $dist (@{ $self->{packages} }) {
+  for my $dist ($self->dists) {
     for my $module ($dist->modules) {
       print $fh sprintf "%-30s %8s  %s\n",
         $module->name,
