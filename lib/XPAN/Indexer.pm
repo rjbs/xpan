@@ -30,7 +30,6 @@ sub build {
   $self->clear_index;
   $self->build_index_files;
   $self->add_all_distributions;
-  CPAN::Checksums::updatedir($self->author_dir('LOCAL'));
 }
 
 sub clear_index {
@@ -60,10 +59,13 @@ sub all_distributions {
 sub add_all_distributions {
   my ($self) = @_;
   $self->{packages} = [];
+  my %cpanid;
   $self->each_distribution(sub {
     $self->add_distribution($_);
+    $cpanid{$_->cpanid}++;
   });
   $self->write_02packages;
+  CPAN::Checksums::updatedir($self->author_dir($_)) for keys %cpanid;
 }
 
 sub add_distribution {
@@ -117,7 +119,7 @@ END
       print $fh sprintf "%-30s %8s  %s\n",
         $module->name,
         (defined $module->version ? $module->version : 'undef'),
-          $self->author_dir('LOCAL')->relative(
+          $self->author_dir($dist->cpanid)->relative(
             $self->path->subdir('authors')->subdir('id')
           )->file($dist->file),
       ;
@@ -138,12 +140,12 @@ sub author_dir {
 sub add_distribution_link {
   my ($self, $dist) = @_;
 
-  my $author_dir = $self->author_dir('LOCAL');
+  my $author_dir = $self->author_dir($dist->cpanid);
   $author_dir->mkpath;
   my $file = $author_dir->file($dist->file);
 
   my $target =
-    $self->archiver->path->subdir('dist')->file($dist->file)->absolute;
+    $self->archiver->path->subdir('dist')->file($dist->path)->absolute;
   #warn "linking $file -> $target\n";
   symlink(
     $target,
