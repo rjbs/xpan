@@ -19,7 +19,10 @@ while (my ($name, $dists) = $iter->()) {
 }
 
 for my $url (@url) {
-  local @ARGV = (inject => '--path', $path, "$url");
-  require XPAN::App;
-  XPAN::App->run;
+  eval {
+    local @ARGV = (inject => '--path', $path, "$url");
+    require XPAN::App;
+    XPAN::App->run;
+  };
+  if ($@) { warn "could not inject $url: $@" }
 }
