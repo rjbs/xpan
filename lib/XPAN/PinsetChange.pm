@@ -39,17 +39,9 @@ has extra => (
   default => sub { {} },
 );
 
-has include_deps => (
-  is => 'ro',
-  isa => 'Bool', 
-  default => 1,
-);
-
-has upgrade => (
-  is => 'ro',
-  isa => 'Bool',
-  default => 0,
-);
+has include_deps => ( is => 'ro', isa => 'Bool', default => 1 );
+has upgrade      => ( is => 'ro', isa => 'Bool', default => 0 );
+has newer_only   => ( is => 'ro', isa => 'Bool', default => 0 );
 
 use Module::CoreList;
 use CPAN::Version;
@@ -74,27 +66,33 @@ sub build_changes {
     next if $seen{$dist->id}++;
     my ($pin) = $self->pinset->find_pins({ name => $dist->name });
 
+    my $c = $changes{$dist->name} = {};
     if ($pin) {
       next if $pin->version eq $dist->version;
-      next if $self->upgrade
+      next if $self->newer_only
         and CPAN::Version->vlt($dist->version, $pin->version);
 
-      $changes{$dist->name} = {
+      %$c = (
         from => $pin,
         to   => $dist,
-      };
+      );
     } else {
-      $changes{$dist->name} = {
+      %$c = (
         to => $dist,
-      };
+      );
     }
 
     if ($orig{$dist}) {
-      $changes{$dist->name}{extra} = $self->extra;
+      # make a copy so that we can change it later
+      $c->{extra} = { %{$self->extra} };
     } else {
-      $changes{$dist->name}{extra} = $extra;
+      $c->{extra} = $extra;
     }
-    $changes{$dist->name}{order} = ++$order;
+    $c->{order} = ++$order;
+
+    if ($self->upgrade and $c->{from}) {
+      delete $c->{extra}{install_reason};
+    }
 
     next unless $self->include_deps;
     for my $dep ($dist->dependencies) {
