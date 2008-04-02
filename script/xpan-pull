@@ -18,8 +18,8 @@ while (my ($name, $dists) = $iter->()) {
   push @url, URI->new('cpan://dist/' . $name);
 }
 
-{
-  local @ARGV = (inject => '--path', $path, @url);
+for my $url (@url) {
+  local @ARGV = (inject => '--path', $path, $url);
   require XPAN::App;
   XPAN::App->run;
 }
