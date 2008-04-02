@@ -107,10 +107,17 @@ sub id_url {
     name => $url->name,
   );
   my $result = $self->cpan->{results};
-  if ($url->version and $url->version ne ($result->{dist_vers} || -1)) {
+  unless ($result and %$result) {
     $self->throw_result(
       'Error',
       message => 'does not exist on cpan',
+      url => $url,
+    );
+  }
+  if ($url->version and $url->version ne ($result->{dist_vers} || -1)) {
+    $self->throw_result(
+      'Error',
+      message => 'wrong version on cpan',
       url => $url,
     ) unless $self->config->get('backpan_mirror');
     my ($dist) = grep { $_->version eq $url->version }
