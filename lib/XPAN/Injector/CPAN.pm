@@ -56,7 +56,9 @@ sub dist_url {
       mode => 'dist',
       name => $url->name,
     );
-    $url->version($self->cpan->{results}->{dist_vers});
+    my $result = $self->cpan->{results}
+      or Carp::croak "no dist found for $url";
+    $url->version($result->{dist_vers});
     return $url;
   }
 
