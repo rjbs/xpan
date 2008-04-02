@@ -89,7 +89,7 @@ sub run {
     if ($change->has_conflicts) {
       print "CONFLICTS PRESENT:\n";
       print $change->table($change->conflicts);
-      die $DONE;
+      die $DONE unless $change->force;
     }
     print $change->table($change->changes);
     if ($opt->{mode} eq 'interactive') {
