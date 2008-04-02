@@ -75,6 +75,18 @@ sub path {
   );
 }
 
+sub cpanid {
+  my ($self) = @_;
+  my $authority = $self->authority;
+  my $cpanid;
+  if ($authority =~ /^cpan:/) {
+    (undef, $cpanid) = split /:/, $authority;
+  } else {
+    $cpanid = 'LOCAL';
+  }
+  return $cpanid;
+}
+
 sub url {
   my ($self) = @_;
   require URI;
