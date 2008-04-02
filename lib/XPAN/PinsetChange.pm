@@ -146,7 +146,9 @@ sub has_conflicts { 0 < keys %{ shift->conflicts } }
 sub table {
   my ($self, $data) = @_;
   require Text::Table;
-  my $table = Text::Table->new("dist", "from", "to", "manual", "reason");
+  my $table = Text::Table->new(
+    "dist", "from", "to", "manual", "reason", "hard_reason"
+  );
 
   for (sort { $data->{$a}{order} <=> $data->{$b}{order} } keys %$data) {
     my $c = $data->{$_};
@@ -156,6 +158,7 @@ sub table {
       $c->{to}->version,
       $c->{extra}{manual} ? 'yes' : 'no',
       $c->{extra}{install_reason},
+      $c->{from} && $c->{from}->hard_pin_reason,
     );
   }
 
