@@ -88,6 +88,9 @@ sub _path_part {
   my $part = shift;
   my @p;
   if (@_) {
+    unless (defined $_[0]) {
+      Carp::confess("asked to set undef: $self, $part, @_");
+    }
     (my $new = shift) =~ s{^/+}{};
     @p = $self->_splice_part($part => [split m{/}, $new]);
   } else {
