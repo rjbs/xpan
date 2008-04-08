@@ -67,7 +67,7 @@ sub build_changes {
     next if $seen{$dist->id}++;
     my ($pin) = $self->pinset->find_pins({ name => $dist->name });
 
-    my $c = $changes{$dist->name} = {};
+    my $c = {};
     if ($pin) {
       next if $pin->version eq $dist->version;
       next if $self->newer_only
@@ -94,6 +94,8 @@ sub build_changes {
     if ($self->upgrade and $c->{from}) {
       $c->{extra}{install_reason} = $c->{from}->install_reason;
     }
+
+    $changes{$dist->name} = $c;
 
     next unless $self->include_deps;
     for my $dep ($dist->dependencies) {
