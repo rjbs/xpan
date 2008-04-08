@@ -77,11 +77,13 @@ sub extra_distributions {
       my $d = $pin->dist;
       if (my ($m) = grep { $d->is_simile($_) } $d->modules) {
         $req{$m->name} = eval { 
-          Perl::Version->new($m->version)->stringify
+          defined $m->version &&
+            Perl::Version->new($m->version)->stringify
         } || $d->version;
       } else {
-        for my $m (grep { eval { Perl::Version->new($_->version) } }
-          $d->modules) {
+        for my $m (grep {
+          defined $_->version && eval { Perl::Version->new($_->version) }
+        } $d->modules) {
           $req{$m->name} = $m->version;
         }
       }
