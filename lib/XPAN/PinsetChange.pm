@@ -151,6 +151,11 @@ sub table {
 
   for (sort { $data->{$a}{order} <=> $data->{$b}{order} } keys %$data) {
     my $c = $data->{$_};
+    unless ($c->{to}) {
+      require Data::Dumper;
+      Carp::confess "invalid table data: missing 'to'" .
+        Data::Dumper::Dumper($c);
+    }
     $table->add(
       $_,
       $c->{from} && $c->{from}->version,
