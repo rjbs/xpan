@@ -29,9 +29,8 @@ is_deeply(
   { map { $_->name => $_->version } $dist->dependencies },
   {
     'Scan::Test' => '0.10',
-    'Scan::Test::Inner' => '0.10',
   },
-  "all dependencies ok",
+  "dependencies ok (only matched simile)",
 );
 
 my $origin = $dist->origin;

@@ -93,4 +93,10 @@ sub url {
   return URI->new(sprintf 'xpan://dist/%s/%s', $self->name, $self->version);
 }
 
+sub is_simile {
+  my ($self, $package) = @_;
+  (my $name = $package->name) =~ s/::/-/g;
+  return $name eq $self->name;
+}
+
 1;

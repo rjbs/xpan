@@ -29,6 +29,7 @@ has pinset => (
 use Carp;
 use Digest::MD5 ();
 use Module::Faker::Dist;
+use Perl::Version;
 
 sub choose_distribution_version {
   my $self = shift;
@@ -74,8 +75,15 @@ sub extra_distributions {
     my %req;
     for my $pin ($ps->pins) {
       my $d = $pin->dist;
-      for my $m (grep { $_->version } $d->modules) {
-        $req{$m->name} = $m->version;
+      if (my ($m) = grep { $d->is_simile($_) } $d->modules) {
+        $req{$m->name} = eval { 
+          Perl::Version->new($m->version)->stringify
+        } || $d->version;
+      } else {
+        for my $m (grep { eval { Perl::Version->new($_->version) } }
+          $d->modules) {
+          $req{$m->name} = $m->version;
+        }
       }
     }
     my $fake = Module::Faker::Dist->new({
