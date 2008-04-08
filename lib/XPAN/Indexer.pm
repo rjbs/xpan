@@ -114,7 +114,7 @@ sub add_to_dists {
 sub write_02packages {
   my $self = shift;
   my $count = 0;
-  $count += $_->modules for $self->dists;
+  for my $d ($self->dists) { for my $m ($d->modules) { $count++ } }
   my $fh = $self->index_fh('02packages');
   print $fh sprintf <<END,
 File:         02packages.details.txt
