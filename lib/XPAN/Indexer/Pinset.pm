@@ -75,18 +75,15 @@ sub extra_distributions {
     my %req;
     for my $pin ($ps->pins) {
       my $d = $pin->dist;
-      if (my ($m) = grep { $d->is_simile($_) } $d->modules) {
-        $req{$m->name} = eval { 
-          defined $m->version &&
-            Perl::Version->new($m->version)->stringify
-        } || $d->version;
-      } else {
-        for my $m (grep {
-          defined $_->version && eval { Perl::Version->new($_->version) }
-        } $d->modules) {
-          $req{$m->name} = $m->version;
-        }
-      }
+      my @m;
+      @m = grep { $d->is_simile($_) } $d->modules or
+      @m = grep {
+        defined $_->version && $_->version eq $d->version
+      } $d->modules or
+      @m = grep {
+        defined $_->version && eval { Perl::Version->new($_->version) }
+      } $d->modules;
+      $req{$_->name} = $_->version for @m;
     }
     my $fake = Module::Faker::Dist->new({
       name    => $name,
