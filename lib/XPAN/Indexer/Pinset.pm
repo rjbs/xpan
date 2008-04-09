@@ -76,13 +76,13 @@ sub extra_distributions {
     for my $pin ($ps->pins) {
       my $d = $pin->dist;
       my @m;
-      @m = grep { $d->is_simile($_) } $d->modules or
+      @m = grep { $d->is_simile($_) } $d->modules;
       @m = grep {
         defined $_->version && $_->version eq $d->version
-      } $d->modules or
+      } $d->modules unless @m;
       @m = grep {
         defined $_->version && eval { Perl::Version->new($_->version) }
-      } $d->modules;
+      } $d->modules unless @m;
       warn "selecting modules for " . $dist->vname . "\n";
       for (@m) {
         $req{$_->name} = $_->version;
