@@ -51,7 +51,12 @@ sub run {
         or $self->usage_error("non-XPAN URL: $_");
     } else {
       die "invalid URL: $_" unless $opt->{inject};
-      my $res = $self->archiver->auto_inject_one($_);
+      my $res =
+        $self->archiver->filter_follow_deps(
+          $self->archiver->filter_unmet_deps(
+            $self->archiver->auto_inject_one($_)
+          )
+        )->next;
       if ($res->dist) {
         $url = $res->dist->url;
       } else {
