@@ -87,10 +87,10 @@ sub extra_distributions {
         && eval { Perl::Version->new($_->version) }
         && ! $_->is_inner_package
       } $d->modules unless @m;
-      warn "selecting modules for " . $d->vname . "\n";
+      #warn "selecting modules for " . $d->vname . "\n";
       for (@m) {
         $req{$_->name} = $_->version;
-        warn ">> " . $_->name . ' ' . $_->version . "\n";
+        #warn ">> " . $_->name . ' ' . $_->version . "\n";
       }
     }
     my $fake = Module::Faker::Dist->new({
