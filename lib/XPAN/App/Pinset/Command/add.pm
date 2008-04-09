@@ -54,7 +54,7 @@ sub run {
       my $res =
         $self->archiver->filter_follow_deps(
           $self->archiver->filter_unmet_deps(
-            $self->archiver->auto_inject_one($_)
+            $self->archiver->iter_auto_inject($_)
           )
         )->next;
       if ($res->dist) {
