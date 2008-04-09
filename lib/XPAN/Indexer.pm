@@ -136,7 +136,8 @@ END
       next if $module->is_inner_package
         # wtf? copying PAUSE
         and $module->file !~ /VERSION/i
-        and $module->file !~ /$tail\.pm/;
+        #and $module->file !~ /$tail\.pm/
+      ;
 
       print $fh sprintf "%-30s %8s  %s\n",
         $module->name,
