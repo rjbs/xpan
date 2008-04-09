@@ -70,7 +70,7 @@ sub extra_distributions {
     db => $ps->db,
   ) };
 
-  unless ($dist and $dist->origin eq $origin) {
+  unless ($dist and $dist->origin and $dist->origin eq $origin) {
     my $version = 1 + ($dist ? $dist->version : 0);
     my %req;
     for my $pin ($ps->pins) {
