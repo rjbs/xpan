@@ -83,7 +83,7 @@ sub extra_distributions {
       @m = grep {
         defined $_->version && eval { Perl::Version->new($_->version) }
       } $d->modules unless @m;
-      warn "selecting modules for " . $dist->vname . "\n";
+      warn "selecting modules for " . $d->vname . "\n";
       for (@m) {
         $req{$_->name} = $_->version;
         warn ">> " . $_->name . ' ' . $_->version . "\n";
