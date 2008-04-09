@@ -78,10 +78,14 @@ sub extra_distributions {
       my @m;
       @m = grep { $d->is_simile($_) } $d->modules;
       @m = grep {
-        defined $_->version && $_->version eq $d->version
+        defined $_->version
+        && $_->version eq $d->version
+        && ! $_->is_inner_package
       } $d->modules unless @m;
       @m = grep {
-        defined $_->version && eval { Perl::Version->new($_->version) }
+        defined $_->version
+        && eval { Perl::Version->new($_->version) }
+        && ! $_->is_inner_package
       } $d->modules unless @m;
       warn "selecting modules for " . $d->vname . "\n";
       for (@m) {

@@ -43,4 +43,11 @@ __PACKAGE__->meta->setup(
 );
 __PACKAGE__->make_manager_class;
 
+sub is_inner_package {
+  my ($self) = @_;
+  (my $name = $self->name) =~ s{::}{/}g;
+  $name .= ".pm";
+  return $self->file !~ /\Q$name\E$/;
+}
+
 1;
