@@ -83,7 +83,11 @@ sub extra_distributions {
       @m = grep {
         defined $_->version && eval { Perl::Version->new($_->version) }
       } $d->modules;
-      $req{$_->name} = $_->version for @m;
+      warn "selecting modules for " . $dist->vname . "\n";
+      for (@m) {
+        $req{$_->name} = $_->version;
+        warn ">> " . $_->name . ' ' . $_->version . "\n";
+      }
     }
     my $fake = Module::Faker::Dist->new({
       name    => $name,
