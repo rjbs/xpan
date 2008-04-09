@@ -27,7 +27,15 @@ $indexer->each_distribution(sub {
     );
 
     my $found = $cpan->{results};
-    is($found->{mod_name}, $module->name,
-      "found a result for " . $module->name);
+    if ($module->is_inner_package) {
+      (my $name = $module->file) =~ s{/}{::}g;
+      $name =~ s/^lib:://;
+      $name =~ s/\.pm$//;
+      is($found->{mod_name}, $name,
+        "found outer package name $name for $name");
+    } else {
+      is($found->{mod_name}, $module->name,
+        "found a result for " . $module->name);
+    }
   }
 });

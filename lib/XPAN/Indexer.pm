@@ -132,6 +132,12 @@ END
 
   for my $dist ($self->dists) {
     for my $module ($dist->modules) {
+      my $tail = (split /::/, $module->name)[-1];
+      next if $module->is_inner_package
+        # wtf? copying PAUSE
+        and $module->file !~ /VERSION/i
+        and $module->file !~ /$tail\.pm/;
+
       print $fh sprintf "%-30s %8s  %s\n",
         $module->name,
         (defined $module->version ? $module->version : 'undef'),
