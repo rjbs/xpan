@@ -36,11 +36,9 @@ sub choose_distribution_version {
   my $name = shift;
   my @dists = @_;
 
-  my ($pin) = $self->pinset->find_pins({ name => $name });
+  # do not include dists that we have no pin for
+  my ($pin) = $self->pinset->find_pins({ name => $name }) or return;
 
-  unless ($pin) {
-    return $self->SUPER::choose_distribution_version($name, @dists);
-  }
   my ($match) = grep { $_->version eq $pin->version } @dists;
 
   unless ($match) {

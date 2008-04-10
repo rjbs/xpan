@@ -52,7 +52,8 @@ sub each_distribution {
   while (my ($name, $dists) = $iter->()) {
     # let Indexer::Pinset manage these
     next if $name =~ /^XPAN-Task-Pinset-/;
-    my $dist = $self->choose_distribution_version($name => @$dists);
+    my $dist = $self->choose_distribution_version($name => @$dists)
+      or next;
     local $_ = $dist;
     $code->();
   }
