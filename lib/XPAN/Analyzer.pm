@@ -154,9 +154,18 @@ sub scan_for_modules {
         my $hash = $self->parse_packages_from_pm($pmfile);
         next if not defined $hash;
         foreach (keys %$hash) {
+          my $name = (split /::/)[-1];
           $pkg{$_} = $hash->{$_}
             if not defined $pkg{$_}{version} or $pkg{$_}{version} eq 'undef'
-            or (defined $hash->{$_}{version} and $pkg{$_}{version} < $hash->{$_}{version});
+            or (defined $hash->{$_}{version} and 
+              (
+                $pkg{$_}{version} < $hash->{$_}{version} or
+                # prefer simile
+                ($pkg{$_}{version} == $hash->{$_}{version} and
+                  $pmfile =~ /\b\Q$name.\Epm$/
+                )
+              )
+            );
         }
       }
     }
