@@ -136,7 +136,9 @@ END
       next if $module->is_inner_package
         # wtf? copying PAUSE
         and $module->file !~ /VERSION/i
-        #and $module->file !~ /$tail\.pm/
+        # PAUSE would leave out the \b, but I want to make sure that
+        # B/BUtils.pm, containing B::Utils, does not get indexed
+        and $module->file !~ /\b$tail\.pm/
       ;
 
       print $fh sprintf "%-30s %8s  %s\n",

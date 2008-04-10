@@ -47,7 +47,12 @@ sub is_inner_package {
   my ($self) = @_;
   (my $name = $self->name) =~ s{::}{/}g;
   $name .= ".pm";
-  return $self->file !~ /\Q$name\E$/;
+  return not (
+    # ReadKey.pm (in the dist_dir toplevel) and Term::ReadKey
+    $self->file eq (split m{/}, $name)[-1] or
+    # lib/Generic/Module.pm and Generic::Module
+    $self->file =~ /\Q$name\E$/
+  )
 }
 
 1;
