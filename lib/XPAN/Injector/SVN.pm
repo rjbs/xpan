@@ -15,7 +15,14 @@ sub url_to_file {
 
   my $export_dir = File::Temp::tempdir(CLEANUP => 1);
 
-  system("svn export --force $url $export_dir >/dev/null")
+  my $auth = "";
+  for (qw(username password)) {
+    if ($self->config->get($_)) {
+      $auth = "--$_ " . $self->config->get($_);
+    }
+  }
+
+  system("svn export $auth --force $url $export_dir >/dev/null")
     and die "svn export failed: $?";
 
   my $dist;
