@@ -25,7 +25,11 @@ has cpan => (
       CPAN   => $dir,
       db_dir => $dir,
     );
-    $cpan->index;
+    $cpan->index unless (
+      $exists and
+      # trust the CPAN::SQLite index for at least 10 minutes
+      $dir->file('cpandb.sql')->stat->mtime <= (time - 60 * 10)
+    );
     return $cpan;
   },
 );
