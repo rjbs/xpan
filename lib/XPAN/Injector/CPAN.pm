@@ -28,7 +28,7 @@ has cpan => (
     $cpan->index unless (
       $exists and
       # trust the CPAN::SQLite index for at least 10 minutes
-      $dir->file('cpandb.sql')->stat->mtime <= (time - 60 * 10)
+      $dir->file('cpandb.sql')->stat->mtime >= (time - 60 * 10)
     );
     return $cpan;
   },
