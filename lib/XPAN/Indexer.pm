@@ -20,7 +20,7 @@ has faker => (
     my ($self) = @_;
     return CPAN::Faker->new({
       source  => '/dev/null',
-      dest    => $self->path,
+      dest    => $self->path->stringify,
     });
   },
 );
