@@ -19,8 +19,8 @@ has faker => (
   default => sub {
     my ($self) = @_;
     return CPAN::Faker->new({
-      src  => '/dev/null',
-      dest => $self->path,
+      source  => '/dev/null',
+      dest    => $self->path,
     });
   },
 );
