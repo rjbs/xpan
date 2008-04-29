@@ -17,7 +17,7 @@ sub url_to_file {
 
   my $auth = "";
   for (qw(username password)) {
-    if ($self->config->get($_)) {
+    if ($self->config && $self->config->get($_)) {
       $auth = "--$_ " . $self->config->get($_);
     }
   }
