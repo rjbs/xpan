@@ -6,6 +6,8 @@ package XPAN::Indexer;
 use Moose;
 with qw(XPAN::Helper);
 
+use File::Temp ();
+
 has dists => (
   is => 'ro',
   isa => 'ArrayRef[XPAN::Dist]',
@@ -19,7 +21,8 @@ has faker => (
   default => sub {
     my ($self) = @_;
     return CPAN::Faker->new({
-      source  => '/dev/null',
+      # yuck, but I'm not sure what else to do
+      source  => File::Temp::tempdir(CLEANUP => 1),
       dest    => $self->path->stringify,
     });
   },
