@@ -44,7 +44,10 @@ sub name { Carp::croak "unimplemented" }
 
 sub path {
   my $self = shift;
-  return $self->archiver->path->subdir('index')->subdir($self->name);
+  my $path = $self->archiver->path->subdir('index')->subdir($self->name);
+  do { $_->mkpath unless -e $_ }
+    for $path, $path->subdir('modules');
+  return $path;
 }
 
 sub build {
