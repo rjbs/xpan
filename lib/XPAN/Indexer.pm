@@ -13,10 +13,23 @@ has dists => (
   default => sub { [] },
 );
 
+has faker => (
+  is => 'ro',
+  lazy => 1,
+  default => sub {
+    my ($self) = @_;
+    return CPAN::Faker->new({
+      src  => '/dev/null',
+      dest => $self->path,
+    });
+  },
+);
+
 use Carp ();
 use CPAN::Checksums ();
 use HTTP::Date ();
 use IO::Zlib;
+use CPAN::Faker;
 
 my %FILE = (
   '02packages' => '02packages.details.txt',
@@ -44,7 +57,11 @@ sub clear_index {
   $self->path->rmtree;
 }
 
-sub build_index_files { }
+sub build_index_files {
+  my ($self) = @_;
+  $self->write_author_index;
+  $self->write_modlist_index;
+}
 
 sub each_distribution {
   my ($self, $code) = @_;
