@@ -25,7 +25,7 @@ has cpan => (
       CPAN   => $dir,
       db_dir => $dir,
     );
-    $cpan->index(setup => 1) unless $exists;
+    $cpan->index;
     return $cpan;
   },
 );
