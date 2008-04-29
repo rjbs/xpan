@@ -59,8 +59,8 @@ sub clear_index {
 
 sub build_index_files {
   my ($self) = @_;
-  $self->write_author_index;
-  $self->write_modlist_index;
+  $self->faker->write_author_index;
+  $self->faker->write_modlist_index;
 }
 
 sub each_distribution {
