@@ -61,6 +61,9 @@ has injector_class_map => (
     my ($self) = @_;
     my %map;
     for my $i_class ($self->injector_pluggable->plugins) {
+      if ($i_class->can('meta') and $i_class->meta->isa('Moose::Meta::Role')) {
+        next;
+      }
       unless ($i_class->can('does') and $i_class->does('XPAN::Injector')) {
         warn "injector plugin $i_class does not fulfill role XPAN::Injector\n";
         next;
