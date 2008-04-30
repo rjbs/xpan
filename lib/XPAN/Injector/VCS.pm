@@ -9,14 +9,12 @@ with qw(XPAN::Helper XPAN::Injector);
 use File::Temp ();
 use File::pushd;
 
-requires qw(export_to_dir);
+requires qw(export);
 
 sub url_to_file {
   my ($self, $url) = @_;
 
-  my $export_dir = File::Temp::tempdir(CLEANUP => 1);
-
-  $self->export_to_dir($url => $export_dir);
+  my $export_dir = $self->export($url);
 
   my $dist;
   {

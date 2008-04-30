@@ -5,11 +5,14 @@ package XPAN::Injector::SVN;
 
 use Moose;
 with qw(XPAN::Injector::VCS);
+use File::Temp ();
 
 sub scheme { 'svn' }
 
-sub export_to_dir {
-  my ($self, $url, $dir) = @_;
+sub export {
+  my ($self, $url) = @_;
+
+  my $dir = File::Temp::tempdir(CLEANUP => 1);
 
   my $auth = "";
   for (qw(username password)) {
@@ -20,6 +23,8 @@ sub export_to_dir {
 
   system("svn export $auth --force $url $dir >/dev/null")
     and die "svn export failed: $?";
+
+  return $dir;
 }
 
 1;

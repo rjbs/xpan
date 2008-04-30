@@ -6,12 +6,15 @@ package XPAN::Injector::Git;
 use Moose;
 with qw(XPAN::Injector::VCS);
 
+use File::Temp ();
+
 sub scheme { 'git' }
 
-sub export_to_dir {
-  my ($self, $url, $dir) = @_;
+sub export {
+  my ($self, $url) = @_;
   my $ref = $url->fragment;
   $url->fragment(undef) if $ref;
+  my $dir = File::Temp::tempdir(CLEANUP => 1) . "/export";
   system("git clone $url $dir") and die "git clone $url $dir failed: $?";
   if ($ref) {
     my $cmd = "git checkout $ref";
@@ -19,6 +22,7 @@ sub export_to_dir {
   }
 
   Path::Class::dir($dir)->subdir('.git')->rmtree;
+  return $dir;
 }
 
 1;
