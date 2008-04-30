@@ -17,7 +17,7 @@ sub export {
   my $dir = File::Temp::tempdir(CLEANUP => 1) . "/export";
   system("git clone $url $dir") and die "git clone $url $dir failed: $?";
   if ($ref) {
-    my $cmd = "git checkout $ref";
+    my $cmd = "cd $dir && git checkout $ref";
     system($cmd) and die "$cmd failed: $?";
   }
 
