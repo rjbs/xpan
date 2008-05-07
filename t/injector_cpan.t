@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 
+use Test::More skip_all => 'needs CPAN::Faker fiddling';
 use Test::More 'no_plan';
 use lib 't/lib';
 use XPAN::Archiver::Test;
