@@ -39,9 +39,17 @@ sub perl_run {
   system("$^X @_ >/dev/null") && die "Error running @_: nonzero exit $?";
 }
 
+sub manifest_if_needed {
+  my ($self, $cmd) = @_;
+  if (! -e 'MANIFEST' and -e 'MANIFEST.SKIP') {
+    $self->perl_run($cmd);
+  }
+}
+
 sub build_pl {
   my ($self) = @_;
   $self->perl_run('Build.PL');
+  $self->manifest_if_needed('./Build manifest');
   my $out = `./Build dist`;
   my ($dist) = grep { $_ ne 'META.yml' }
     $out =~ m{^Creating (\S+)$}m;
@@ -51,6 +59,7 @@ sub build_pl {
 sub make_pl {
   my ($self) = @_;
   $self->perl_run('Makefile.PL');
+  $self->manifest_if_needed('make manifest');
   my $out = `make dist`;
   my ($dist) = $out =~ m{^mkdir ([^\n/]+)$}m;
   return $dist;
