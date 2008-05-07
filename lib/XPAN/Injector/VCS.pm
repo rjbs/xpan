@@ -36,20 +36,20 @@ sub url_to_file {
 
 sub perl_run {
   my $self = shift;
-  system("$^X @_ >/dev/null") && die "Error running @_: nonzero exit $?";
+  system("$^X @_") && die "Error running @_: nonzero exit $?";
 }
 
 sub manifest_if_needed {
   my ($self, $cmd) = @_;
   if (! -e 'MANIFEST' and -e 'MANIFEST.SKIP') {
-    $self->perl_run($cmd);
+    system($cmd) && die "Error running $cmd: nonzero exit $?";
   }
 }
 
 sub build_pl {
   my ($self) = @_;
   $self->perl_run('Build.PL');
-  $self->manifest_if_needed('./Build manifest');
+  $self->manifest_if_needed("$^X ./Build manifest');
   my $out = `./Build dist`;
   my ($dist) = grep { $_ ne 'META.yml' }
     $out =~ m{^Creating (\S+)$}m;
