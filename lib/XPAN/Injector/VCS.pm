@@ -49,7 +49,7 @@ sub manifest_if_needed {
 sub build_pl {
   my ($self) = @_;
   $self->perl_run('Build.PL');
-  $self->manifest_if_needed("$^X ./Build manifest');
+  $self->manifest_if_needed("$^X ./Build manifest");
   my $out = `./Build dist`;
   my ($dist) = grep { $_ ne 'META.yml' }
     $out =~ m{^Creating (\S+)$}m;
