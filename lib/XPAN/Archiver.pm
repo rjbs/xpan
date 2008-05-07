@@ -252,7 +252,7 @@ sub filter_follow_deps {
     if (exists $res->warning->{unmet_deps}) {
       my @unmet = @{ $res->warning->{unmet_deps} };
       push @r, $self->filter_follow_deps(
-        $self->iter_auto_inject(map { $_->{url} } @unmet)
+        $self->iter_auto_inject([ map { $_->{url} } @unmet ])
       );
     }
     return iter \@r;
