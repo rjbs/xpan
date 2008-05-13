@@ -9,11 +9,11 @@ XPAN - X Perl Archive Network
 
 =head1 VERSION
 
-Version 0.001010
+Version 0.001011
 
 =cut
 
-our $VERSION = '0.001010';
+our $VERSION = '0.001011';
 
 =head1 SYNOPSIS
 
