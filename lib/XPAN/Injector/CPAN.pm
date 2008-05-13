@@ -19,16 +19,16 @@ has cpan => (
     #my $dir = $self->archiver->tmp->subdir('cpan');
     # only for dev; faster
     my $dir = Path::Class::dir("$ENV{HOME}/tmp/cpan");
-    my $exists = -e $dir->file('cpandb.sql');
+    my $exists = -e $dir->file('cpandb.sql') && -s _;
     $dir->mkpath;
     my $cpan = CPAN::SQLite->new(
       CPAN   => $dir,
       db_dir => $dir,
     );
-    $cpan->index unless (
+    $cpan->index(setup => 1) unless (
       $exists and
       # trust the CPAN::SQLite index for at least 10 minutes
-      $dir->file('cpandb.sql')->stat->mtime >= (time - 60 * 10)
+      -M $dir->file('cpandb.sql') >= (time - 60 * 10)
     );
     return $cpan;
   },
