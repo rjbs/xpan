@@ -1,0 +1,29 @@
+We need a standalone smoker. 
+
+The smoker's API is this:
+
+GIVEN: (a) a set of modules to have installed (b) a set of dists to test
+THEN: (a) test them (b) report back
+
+It's important that we try to ensure that (Given(a)) is treated as "and nothing
+else, with some exceptions maybe" (like, maybe, local::lib).  The smoker's job
+is not to figure out extra dependencies for the listed dists -- all
+dependencies should already be included in (b), since we want to explicitly
+list the entire potential change.
+
+Useful targets for this functionality (standalone) are Moose and Catalyst, two
+projects that have a large ecosystem of plugins and extensions.  (For
+standalone operation, the "set of modules to have installed" would probably
+just be "the current set of installed modules".)
+
+When we want to glue this smoker to XPAN, its most important job is:
+
+* you tell it "Is it okay to upgrade pinset X to pinset Y's contents?"
+* it ensures that it is going to run things in Y's environment
+* it runs the tests for everything downstream-affected by the delta(X,Y)
+* it returns a grade and a bunch of TAP archives
+
+the smoker should really be a job queue thingie, and it would be awesome to be
+able to check on its status: "How's that smoke going?" // "5 dists to go, all
+green so far!"
+
