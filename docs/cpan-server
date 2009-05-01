@@ -1,1 +1,6 @@
-web server that emulates /modules and /authors in a cpan mirror
+We need an extensible framework for presenting CPAN indexes over http.
+
+The base package can be a skeleton with the right hooks for serving /modules
+and /authors.  We'll want to provide a role that all models must consume.
+CPAN::Whatever::OnDisk can be the basic model (using CPAN::Faker), and maybe a
+trivial in-memory-only model too.
