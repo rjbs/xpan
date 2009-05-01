@@ -1,0 +1,7 @@
+We should think about the possibility of reuse with other language communities.
+In particular, if dependencies assume a distribution/package split (dist X
+depends on package Y), we fail.
+
+If dependencies map to things that dists provide, we get a lot more
+flexibility.  e.g. 'js(Foo-Bar.js) >= 1.123'  (urns might fit here, or they
+might just be too wordy.)
