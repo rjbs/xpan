@@ -1,0 +1,5 @@
+---
+name: MetaOlder
+version: 0.99
+archive_basename: MetaOlder-1.00
+abstract: META.yml is older than the filename

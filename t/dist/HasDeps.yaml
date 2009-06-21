@@ -1,0 +1,4 @@
+name: HasDeps
+requires:
+  NoMeta: '0.01'
+  'Meta::Override': '1.01'

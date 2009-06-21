@@ -1,0 +1,5 @@
+---
+name: Meta-Override
+version: 1.01
+archive_basename: Meta-Override-1.00
+abstract: a dist where META.yml overrides the filename

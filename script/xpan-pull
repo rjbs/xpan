@@ -1,0 +1,28 @@
+#!/icg/bin/perl-5.8
+
+use strict;
+use warnings;
+use XPAN::Archiver;
+
+my $path = shift @ARGV or die "usage: xpan-pull [path to archive]\n";
+
+my $arch = XPAN::Archiver->new(path => $path);
+
+my $iter = $arch->dists_by_name_iterator;
+
+my @url;
+while (my ($name, $dists) = $iter->()) {
+  my $latest = $dists->[-1];
+  next unless $latest->authority =~ /^cpan:/;
+
+  push @url, URI->new('cpan://dist/' . $name);
+}
+
+for my $url (@url) {
+  eval {
+    local @ARGV = (inject => '--path', $path, "$url");
+    require XPAN::App;
+    XPAN::App->run;
+  };
+  if ($@) { warn "could not inject $url: $@" }
+}
