@@ -1,0 +1,19 @@
+use strict;
+use warnings;
+use lib 'lib';
+
+use XPAN::CPANMirror::Mini;
+
+my $mirror = XPAN::CPANMirror::Mini->new({
+  root => "$ENV{HOME}/mirrors/minicpan",
+});
+
+my $fh = $mirror->package_index;
+my @lines = grep { /RJBS/ } <$fh>;
+print @lines;
+
+my $dist = $mirror->distfile('RJBS/URI-cpan-1.003.tar.gz');
+
+open my $tar, '| tar zt' or die "fail";
+print {$tar} <$dist>;
+

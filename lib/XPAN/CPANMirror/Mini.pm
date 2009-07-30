@@ -15,7 +15,7 @@ sub _author_fn {
   my ($self, $author, $path) = @_;
   my @bits = map { substr $author, $_, 1 } (0..1);
 
-  return $self->root . "/authors/id/$bits[0]/$bits[1]/$path";
+  return $self->root . "/authors/id/$bits[0]/$bits[0]$bits[1]/$author/$path";
 }
 
 sub distfile {
@@ -23,7 +23,8 @@ sub distfile {
   my ($author, $rest) = split m{/}, $distfile, 2;
 
   my $path = $self->_author_fn($author, $rest);
-  my $file = IO::File->new($path, 'rb');
+  warn "opening $path\n";
+  my $file = IO::File->new($path, '<');
 
   return $file;
 }
@@ -39,7 +40,7 @@ sub package_index {
 sub author_checksums {
   my ($self, $author) = @_;
   my $path = $self->_author_fn($author, 'CHECKSUMS');
-  my $file = IO::File->new($path, 'rb');
+  my $file = IO::File->new($path, '<');
   
   return $file;
 }
