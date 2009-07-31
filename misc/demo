@@ -12,7 +12,7 @@ my $fh = $mirror->package_index;
 my @lines = grep { /RJBS/ } <$fh>;
 print @lines;
 
-my $dist = $mirror->distfile('RJBS/URI-cpan-1.003.tar.gz');
+my $dist = $mirror->author_file('RJBS/URI-cpan-1.003.tar.gz');
 
 open my $tar, '| tar zt' or die "fail";
 print {$tar} <$dist>;

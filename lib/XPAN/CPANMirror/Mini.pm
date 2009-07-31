@@ -18,7 +18,7 @@ sub _author_fn {
   return $self->root . "/authors/id/$bits[0]/$bits[0]$bits[1]/$author/$path";
 }
 
-sub distfile {
+sub author_file {
   my ($self, $distfile) = @_;
   my ($author, $rest) = split m{/}, $distfile, 2;
 
@@ -33,6 +33,14 @@ sub package_index {
   my ($self) = @_;
   my $fn   = $self->root . "/modules/02packages.details.txt.gz";
   my $file = IO::Zlib->new($fn, 'rb');
+
+  return $file;
+}
+
+sub package_index_gz {
+  my ($self) = @_;
+  my $fn   = $self->root . "/modules/02packages.details.txt.gz";
+  my $file = IO::File->new($fn, '<');
 
   return $file;
 }
