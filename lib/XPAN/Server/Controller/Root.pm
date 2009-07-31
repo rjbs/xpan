@@ -1,11 +1,11 @@
-package XPAN::MirrorServer::Controller::Root;
+package XPAN::Server::Controller::Root;
 use base 'Catalyst::Controller';
 
 __PACKAGE__->config->{namespace} = '';
 
-sub index : Private {
+sub index : Path('/') Args(0) {
   my ($self, $c) = @_;
-  $c->res->body('This server is powered by XPAN::MirrorServer.');
+  $c->res->body('This server is powered by XPAN::Server.');
 }
 
 sub default : Private {

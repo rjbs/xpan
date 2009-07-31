@@ -1,4 +1,4 @@
-package XPAN::MirrorServer::Model::CPANMirror;
+package XPAN::Server::Model::CPANMirror;
 use base 'Catalyst::Model';
 
 use XPAN::CPANMirror::Mini;

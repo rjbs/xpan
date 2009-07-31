@@ -1,4 +1,4 @@
-package XPAN::MirrorServer;
+package XPAN::Server;
 use parent 'Catalyst';
 use Catalyst;
 
