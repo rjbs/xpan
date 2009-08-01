@@ -1,0 +1,7 @@
+use strict;
+use warnings;
+use lib 'lib';
+
+use XPAN::DB::Schema;
+
+XPAN::DB::Schema->connect('dbi:SQLite:xpan.db', undef, undef)->deploy;
