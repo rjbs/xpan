@@ -23,6 +23,6 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->set_primary_key(qw(id));
-__PACKAGE__->add_unique_constraint([ qw(author filename) ]);
+__PACKAGE__->add_unique_constraint(dist_file => [ qw(author filename) ]);
 
 1;
