@@ -1,0 +1,9 @@
+use strict;
+use warnings;
+use lib 'lib';
+use XPAN::Analyzer;
+
+use Data::Dumper;
+my $result = XPAN::Analyzer->analyze('Sub-Exporter-0.982.tar.gz');
+
+print Dumper($result);
