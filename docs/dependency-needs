@@ -1,0 +1,41 @@
+
+== basic prereq tracking
+
+When we want to add X to an XPAN that things A,B,C will now depend on X instead
+of Y.  Then we'll want to figure out all the things that depend on A,B,C
+recursively.  Then we will test them all in order.
+
+A,B,C must be dists.  Dists depend on packages.  We can store this pretty
+simply:
+
+  dist(D) depends on package(P, VER)        // prereq data
+
+  package(P) currently provided by dist(E1)  // package indexing data
+
+Our index (the thing used to build 02packages) knows we can only have one dist
+providing a given package.  If we inject dist(E2) which will become the new
+provider of P (at any version, really) it means that D needs re-testing, along
+with all its descendants.
+
+So, all we need to know to test these assertions is:
+
+  given a dist D, on what packages does it rely?
+
+then when injecting dist E, analyze; find all packages it provides; find all
+dists that rely on those packages;  (probably voice concern on edge cases like
+receding version numbers); find all dists that rely on THOSE dists' packages,
+recursively; install to local lib recursively, retesting
+
+== hard version pins
+
+hard pins are when you say, "I can't upgrade this dist, because I know the next
+version will break my mission critical spice indexing server."
+
+we want to avoid worrying about dist versions directly when building indexes
+and doing prereq analysis so that we always track (dist relies on package) the
+way CPAN does;  if that's the case, pinning a dist seems like a problem
+
+what we'll do is store pins saying (must not replace any package in dist D)
+
+then if someone tries to inject dist E and it contains any package that D
+contains, we will refuse to accept it
