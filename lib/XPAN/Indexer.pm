@@ -60,7 +60,11 @@ sub build {
 
 sub clear_index {
   my ($self) = @_;
-  $self->path->rmtree;
+
+  require File::Find::Rule;
+  my @links = File::Find::Rule->symlink->in(q{} . $self->path);
+
+  unlink for @links;
 }
 
 sub build_index_files {
