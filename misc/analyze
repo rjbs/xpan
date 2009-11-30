@@ -3,7 +3,7 @@ use warnings;
 use lib 'lib';
 use XPAN::Analyzer;
 
-use Data::Dumper;
-my $result = XPAN::Analyzer->analyze('Sub-Exporter-0.982.tar.gz');
+use YAML::XS;
+my $result = XPAN::Analyzer->analyze($ARGV[0]);
 
-print Dumper($result);
+print Dump($result);
